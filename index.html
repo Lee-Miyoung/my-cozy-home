@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-title" content="청인마루">
     <link rel="apple-touch-icon" href="icon.jpg">
     <link rel="icon" type="image/jpeg" href="icon.jpg">
-    <title>청인마루 스마트 실측  시스템 (v19.7)</title>
+    <title>청인마루 스마트 실측  시스템 (v19.9)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -56,7 +56,7 @@
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
             <img src="icon.jpg" class="w-24 h-24 rounded-2xl mx-auto mb-6 shadow-lg" onerror="this.src='https://via.placeholder.com/100?text=ChungIn'">
             <h2 class="text-2xl font-black text-slate-900 mb-1">청인마루 Partner</h2>
-            <p class="text-xs text-slate-500 font-bold mb-8">벽장재 견적 시스템 v19.7</p>
+            <p class="text-xs text-slate-500 font-bold mb-8">벽장재 견적 시스템 v19.9</p>
             <div class="relative mb-4">
                 <input type="password" id="app-password" class="w-full p-4 bg-slate-100 rounded-xl text-center text-lg font-black outline-none focus:ring-2 ring-blue-500 transition-all placeholder-slate-400" placeholder="PASSWORD" onkeyup="if(window.event.keyCode==13){checkAppLogin()}">
             </div>
@@ -97,7 +97,7 @@
             <div class="z-10 text-center">
                 <div class="inline-flex items-center gap-1 bg-blue-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-2 shadow-sm"><i class="fas fa-star text-yellow-300 text-[8px]"></i> PREMIUM SYSTEM</div>
                 <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-none mb-1">청인마루<span class="text-blue-600">.</span></h1>
-                <p class="text-sm text-slate-500 font-bold mb-4">Smart Quote System <span class="text-slate-300">|</span> v19.7</p>
+                <p class="text-sm text-slate-500 font-bold mb-4">Smart Quote System <span class="text-slate-300">|</span> v19.9</p>
                 <div class="flex gap-2 justify-center">
                     <button onclick="location.reload()" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-slate-400"><i class="fas fa-sync-alt"></i></button>
                     <button onclick="showRecordModal()" class="bg-white px-4 py-2 rounded-full shadow-sm text-xs font-black text-slate-600 flex items-center gap-2">
@@ -193,7 +193,7 @@
                         <div class="flex items-center gap-2">
                             <div class="flex-1"><span class="text-[9px] font-black text-slate-400 block mb-1 uppercase ml-1">가로(W)</span><input type="number" id="zone-width-input" class="w-full p-3 bg-white rounded-xl text-center font-black text-slate-700 border border-slate-200 outline-none" placeholder="0"></div>
                             <span class="text-slate-300 font-bold mt-4">×</span>
-                            <div class="flex-1"><span class="text-[9px] font-black text-blue-500 block mb-1 uppercase ml-1 text-center">높이(H)</span><input type="number" id="zone-height-input" class="w-full p-3 bg-blue-50 rounded-xl text-center font-black text-blue-700 border border-blue-200 outline-none" value="2300"></div>
+                            <div class="flex-1"><span class="text-[9px] font-black text-blue-500 block mb-1 uppercase ml-1 text-center">높이(H)</span><input type="number" id="zone-height-input" class="w-full p-3 bg-blue-50 rounded-xl text-center font-black text-blue-700 border border-blue-200 outline-none" value="2400"></div>
                             <button onclick="addZone()" class="bg-blue-600 text-white w-12 h-12 rounded-xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all mt-4"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
@@ -244,7 +244,7 @@
                 </div>
             </div>
 
-            <div id="capture-area" class="report-gradient rounded-[2rem] p-6 md:p-8 flex flex-col justify-between premium-shadow lg:sticky lg:top-6 relative min-h-[750px] text-white overflow-hidden">
+            <div id="capture-area" class="report-gradient rounded-[2rem] p-6 md:p-8 flex flex-col justify-between premium-shadow lg:sticky lg:top-6 relative min-h-[750px] max-h-[95vh] text-white overflow-y-auto scroll-smooth">
                 <div class="watermark-wrapper"><img src="maruni.png" class="watermark-img" onerror="this.src='icon.jpg'"></div>
                 <div class="relative z-10">
                     <div class="flex justify-between items-start mb-8 pb-6 border-b border-white/10">
@@ -307,7 +307,6 @@
                         <div class="text-center mb-6"><span class="bg-white/20 px-2 py-0.5 rounded text-[9px] font-black text-white uppercase mb-1 inline-block">TOTAL AMOUNT (VAT INC.)</span><div class="flex items-baseline justify-center gap-1.5"><span id="res-total-vat" class="text-4xl md:text-5xl font-black text-white">0</span><span class="text-xl font-bold text-blue-200">원</span></div></div>
                         <div class="grid grid-cols-2 gap-2" data-html2canvas-ignore="true">
                             <button onclick="shareQuote()" class="btn-action bg-[#FEE500] text-[#3c1e1e]"><i class="fas fa-comment mr-2"></i> 카카오톡 공유</button>
-                            <button onclick="sendSms()" class="btn-action bg-emerald-500 text-white"><i class="fas fa-sms mr-2"></i> 문자 전송</button>
                             <button onclick="sendSms()" class="btn-action bg-emerald-500 text-white"><i class="fas fa-sms mr-2"></i> 문자 전송</button>
                             <button onclick="saveRecord()" class="btn-action bg-slate-800 text-white"><i class="fas fa-save mr-2"></i> 기록 저장</button>
                             <button onclick="saveImage()" class="btn-action bg-white text-blue-900"><i class="fas fa-download mr-2"></i> 이미지 저장</button>
@@ -386,10 +385,10 @@
         function updateModels() {
             const bName = document.getElementById('select-brand').value;
             const pName = document.getElementById('select-product').value;
-            const mInput = document.getElementById('model-name'); // 모델명 입력창 직접 참조
+            const mInput = document.getElementById('model-name');
             const mList = document.getElementById('model-options');
             
-            mInput.value = ''; // 제품명이 바뀌면 입력되어 있던 모델명 즉시 초기화
+            mInput.value = '';
             mList.innerHTML = '';
             
             if (bName && pName) {
@@ -421,7 +420,6 @@
                 document.getElementById('input-labor-m2').value = pObj.labor ? pObj.labor.toLocaleString() : "0";
                 document.getElementById('input-box-qty').value = pObj.boxQty || "";
             } else {
-                // 모델이 없거나 지워진 경우 관련 정보 초기화
                 document.getElementById('input-box-price').value = "0";
                 document.getElementById('input-factor').value = "3.2";
                 document.getElementById('input-spec').value = "";
@@ -581,7 +579,7 @@
             let name = document.getElementById('zone-name-select').classList.contains('hidden') ? document.getElementById('zone-name-input').value : document.getElementById('zone-name-select').value; 
             if (!name || name === "기타 직접입력") { alert("공간명을 입력하세요."); return; } 
             const w = parseFloat(document.getElementById('zone-width-input').value) || 0; 
-            const h = parseFloat(document.getElementById('zone-height-input').value) || 2300; 
+            const h = parseFloat(document.getElementById('zone-height-input').value) || 2400; 
             const dw = parseFloat(document.getElementById('zone-deduct-w').value) || 0;
             const dh = parseFloat(document.getElementById('zone-deduct-h').value) || 0;
             const deductArea = (dw * dh) / 1000000;
