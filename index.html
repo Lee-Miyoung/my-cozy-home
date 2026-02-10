@@ -285,6 +285,8 @@
                                 <p id="res-total-area" class="text-3xl font-black text-blue-400 italic">0 <span class="text-sm not-italic text-white">㎡</span></p>
                             </div>
                         </div>
+                        <div id="res-zone-list" class="mb-4 space-y-1 px-1 border-t border-white/5 pt-3 empty:hidden"></div>
+                        
                         <div class="bg-black/20 rounded-2xl p-5 border border-white/5 space-y-2.5">
                             <div class="flex justify-between text-xs" id="row-base"><span class="text-slate-300">기본 자재비</span><span id="detail-base" class="font-bold">0 원</span></div>
                             <div class="flex justify-between text-xs hidden" id="row-labor"><span class="text-slate-300">인건비</span><span id="detail-labor" class="font-bold text-blue-300">0 원</span></div>
@@ -425,6 +427,22 @@
             const curM2 = parseFloat(document.getElementById('input-real-m2').value) || 0; 
             const curBoxes = parseInt(document.getElementById('input-boxes').value) || 0; 
             document.getElementById('res-total-area').innerHTML = `${curM2.toFixed(2)} <span class="text-sm not-italic text-white">㎡</span>`; 
+            
+            // 오른쪽 리포트에 면적 상세 내역 표시 로직 추가
+            const resZoneList = document.getElementById('res-zone-list');
+            if (resZoneList) {
+                if (isManualMode) {
+                    resZoneList.innerHTML = `<div class="flex justify-between text-[10px] font-medium text-slate-400"><span>• 실측 면적 (직접 입력)</span><span>${curM2.toFixed(2)}㎡</span></div>`;
+                } else {
+                    resZoneList.innerHTML = zoneList.map(z => 
+                        `<div class="flex justify-between text-[10px] font-medium text-slate-400">
+                            <span>• ${z.name} (W:${z.w} H:${z.h})</span>
+                            <span>${z.area.toFixed(2)}㎡</span>
+                        </div>`
+                    ).join('');
+                }
+            }
+
             updateCalculations(curBoxes, curM2); 
         }
 
