@@ -33,7 +33,6 @@
         .input-premium:focus { background: #fff; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         .input-label { position: absolute; top: -8px; left: 12px; background: #f8fafc; padding: 0 6px; font-size: 11px; font-weight: 800; color: #64748b; border-radius: 4px; z-index: 10; }
         
-        /* 모델 드롭다운 커스텀 스타일 */
         .model-list-container { 
             max-height: 0; overflow: hidden; opacity: 0; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
@@ -353,7 +352,7 @@
             document.getElementById('quote-number-disp').innerText = "NO. " + generateQuoteNumber(); 
         };
 
-        function checkAppLogin() { if (btoa(document.getElementById('app-password').value) === 'MTMwNg==') { localStorage.setItem('cm_auth_session', 'valid'); location.reload(); } else { alert('오류'); } }
+        function checkAppLogin() { if (btoa(document.getElementById('app-password').value) === 'MTMwNg==') { localStorage.setItem('cm_auth_session', 'valid'); location.reload(); } else { alert('비밀번호가 올바르지 않습니다.'); } }
         
         async function loadSheetData() { 
             try { 
@@ -419,7 +418,6 @@
             handleModelSelect();
         }
         
-        // 모델 선택/입력 제어 함수
         function openModelList() {
             const list = document.getElementById('model-list-custom');
             if(list.children.length > 0) list.classList.add('open');
@@ -467,8 +465,6 @@
                 document.getElementById('input-spec').value = pObj.spec || "";
                 document.getElementById('input-labor-m2').value = pObj.labor ? pObj.labor.toLocaleString() : "0";
                 document.getElementById('input-box-qty').value = pObj.boxQty || "";
-            } else {
-                // 직접 입력 시 초기화 안 함 (단가/규격 등은 유지 또는 필요시 수동입력)
             }
             calculate(); 
         }
@@ -689,8 +685,60 @@
         function importFromFile() { document.getElementById('file-input').click(); }
         function handleFileImport(e) { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = function(e) { const imported = JSON.parse(e.target.result); localStorage.setItem('chungin_v18_records', JSON.stringify(imported)); renderRecords(); alert('가져오기 성공'); }; reader.readAsText(file); }
         
-        function shareQuote() { showToast(); html2canvas(document.getElementById('capture-area'), { scale: 2 }).then(canvas => { canvas.toBlob(blob => { if(navigator.share) navigator.share({ files: [new File([blob], "견적.png", {type:"image/png"})] }); }); }); }
-        function saveImage() { showToast(); html2canvas(document.getElementById('capture-area'), { scale: 2 }).then(canvas => { const a = document.createElement('a'); a.href = canvas.toDataURL(); a.download = "견적.png"; a.click(); }); }
+        // --- 이미지 캡처/공유 기능 개선 (잘림 방지) ---
+        function shareQuote() { 
+            showToast(); 
+            const target = document.getElementById('capture-area');
+            const originalMaxH = target.style.maxHeight;
+            const originalOverflow = target.style.overflowY;
+
+            // 캡처를 위해 일시적으로 제한 해제
+            target.style.maxHeight = 'none';
+            target.style.overflowY = 'visible';
+
+            html2canvas(target, { 
+                scale: 2, 
+                useCORS: true,
+                windowHeight: target.scrollHeight 
+            }).then(canvas => { 
+                target.style.maxHeight = originalMaxH;
+                target.style.overflowY = originalOverflow;
+
+                canvas.toBlob(blob => { 
+                    if(navigator.share) {
+                        const file = new File([blob], "청인마루_견적서.png", {type:"image/png"});
+                        navigator.share({ files: [file] }).catch(err => console.log('공유 실패:', err));
+                    } else {
+                        alert('이미지 저장 기능을 이용해주세요.');
+                    }
+                }); 
+            }); 
+        }
+
+        function saveImage() { 
+            showToast(); 
+            const target = document.getElementById('capture-area');
+            const originalMaxH = target.style.maxHeight;
+            const originalOverflow = target.style.overflowY;
+
+            target.style.maxHeight = 'none';
+            target.style.overflowY = 'visible';
+
+            html2canvas(target, { 
+                scale: 2, 
+                useCORS: true,
+                windowHeight: target.scrollHeight 
+            }).then(canvas => { 
+                target.style.maxHeight = originalMaxH;
+                target.style.overflowY = originalOverflow;
+
+                const a = document.createElement('a'); 
+                a.href = canvas.toDataURL("image/png"); 
+                a.download = `청인마루_견적서_${document.getElementById('cust-name').value || '고객'}.png`; 
+                a.click(); 
+            }); 
+        }
+
         function sendSms() { const phone = document.getElementById('cust-phone').value.replace(/-/g, ""); const msg = `[청인마루 견적]\n제품: ${document.getElementById('res-product').innerText}\n합계: ${document.getElementById('res-total-vat').innerText}원`; window.location.href = `sms:${phone}${navigator.userAgent.match(/iPhone/i) ? '&' : '?'}body=${encodeURIComponent(msg)}`; }
     </script>
 </body>
