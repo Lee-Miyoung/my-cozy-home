@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-title" content="청인마루">
     <link rel="apple-touch-icon" href="icon.jpg">
     <link rel="icon" type="image/jpeg" href="icon.jpg">
-    <title>청인마루 스마트 실측  시스템 (v19.9)</title>
+    <title>청인마루 스마트 실측 시스템 (v19.9)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -32,6 +32,18 @@
         .input-premium { width: 100%; padding: 14px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-weight: 700; color: #334155; outline: none; transition: all 0.2s; }
         .input-premium:focus { background: #fff; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         .input-label { position: absolute; top: -8px; left: 12px; background: #f8fafc; padding: 0 6px; font-size: 11px; font-weight: 800; color: #64748b; border-radius: 4px; z-index: 10; }
+        
+        /* 모델 드롭다운 커스텀 스타일 */
+        .model-list-container { 
+            max-height: 0; overflow: hidden; opacity: 0; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 50; 
+            background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        .model-list-container.open { max-height: 250px; opacity: 1; margin-top: 8px; padding: 8px; border: 1px solid #e2e8f0; overflow-y: auto; }
+        .model-item { padding: 10px 14px; font-size: 13px; font-weight: 700; color: #475569; cursor: pointer; border-radius: 8px; }
+        .model-item:hover { background: #f1f5f9; color: #2563eb; }
+
         .stat-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
         .stat-label { font-size: 11px; font-weight: 800; color: #94a3b8; display: block; margin-bottom: 4px; }
         .stat-input { width: 100%; background: transparent; text-align: center; font-weight: 900; font-size: 1.4rem; outline: none; color: #1e293b; }
@@ -143,10 +155,10 @@
                     </div>
 
                     <div class="grid grid-cols-3 gap-3">
-                        <div id="model-select-wrapper" class="input-group">
-                            <input type="text" id="model-name" list="model-options" class="input-premium" placeholder="모델명 선택/입력" onchange="handleModelSelect();">
-                            <datalist id="model-options"></datalist>
+                        <div id="model-select-wrapper" class="input-group relative">
+                            <input type="text" id="model-name" class="input-premium" placeholder="모델명 선택/입력" onfocus="openModelList()" oninput="filterModelList(); handleModelSelect();" onblur="setTimeout(closeModelList, 200)">
                             <span class="input-label">모델명</span>
+                            <div id="model-list-custom" class="model-list-container"></div>
                         </div>
                         <div id="model-input-wrapper" class="input-group hidden">
                             <input type="text" id="model-name-txt" class="input-premium" placeholder="모델명" oninput="updateInfoText();">
@@ -386,25 +398,61 @@
             const bName = document.getElementById('select-brand').value;
             const pName = document.getElementById('select-product').value;
             const mInput = document.getElementById('model-name');
-            const mList = document.getElementById('model-options');
+            const mListCustom = document.getElementById('model-list-custom');
             
             mInput.value = '';
-            mList.innerHTML = '';
+            mListCustom.innerHTML = '';
             
             if (bName && pName) {
                 const bObj = masterData.find(x => x.brand === bName);
                 if(bObj) { 
                     const models = bObj.products.filter(p => p.name === pName);
                     models.forEach(m => {
-                        const opt = document.createElement('option');
-                        opt.value = m.model;
-                        mList.appendChild(opt);
+                        const div = document.createElement('div');
+                        div.className = 'model-item';
+                        div.innerText = m.model;
+                        div.onclick = () => selectModel(m.model);
+                        mListCustom.appendChild(div);
                     });
                 }
             }
             handleModelSelect();
         }
         
+        // 모델 선택/입력 제어 함수
+        function openModelList() {
+            const list = document.getElementById('model-list-custom');
+            if(list.children.length > 0) list.classList.add('open');
+        }
+
+        function closeModelList() {
+            document.getElementById('model-list-custom').classList.remove('open');
+        }
+
+        function selectModel(val) {
+            const mInput = document.getElementById('model-name');
+            mInput.value = val;
+            closeModelList();
+            handleModelSelect();
+        }
+
+        function filterModelList() {
+            const filter = document.getElementById('model-name').value.toLowerCase();
+            const items = document.querySelectorAll('.model-item');
+            let hasVisible = false;
+            items.forEach(item => {
+                if (item.innerText.toLowerCase().includes(filter)) {
+                    item.style.display = 'block';
+                    hasVisible = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            const list = document.getElementById('model-list-custom');
+            if(hasVisible) list.classList.add('open');
+            else list.classList.remove('open');
+        }
+
         function handleModelSelect() { 
             const bName = document.getElementById('select-brand').value; 
             const pName = document.getElementById('select-product').value; 
@@ -420,11 +468,7 @@
                 document.getElementById('input-labor-m2').value = pObj.labor ? pObj.labor.toLocaleString() : "0";
                 document.getElementById('input-box-qty').value = pObj.boxQty || "";
             } else {
-                document.getElementById('input-box-price').value = "0";
-                document.getElementById('input-factor').value = "3.2";
-                document.getElementById('input-spec').value = "";
-                document.getElementById('input-labor-m2').value = "0";
-                document.getElementById('input-box-qty').value = "0";
+                // 직접 입력 시 초기화 안 함 (단가/규격 등은 유지 또는 필요시 수동입력)
             }
             calculate(); 
         }
