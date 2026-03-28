@@ -503,9 +503,13 @@
             const getNum = (id) => parseInt(document.getElementById(id).value.replace(/,/g,'')) || 0;
             const price = parseInt(document.getElementById('input-box-price').value.replace(/,/g,'')) || 0;
             const laborM2 = parseInt(document.getElementById('input-labor-m2').value.replace(/,/g,'')) || 0;
+            const factor = parseFloat(document.getElementById('input-factor').value) || 0;
             const bondQty = getNum('qty-bond');
             const woodQty = getNum('qty-wood');
-            const laborCost = Math.round(realM2 * laborM2);
+            
+            // 인건비 계산 변경: 필요박스 * 헤베당인건비 * 박스당헤베
+            const laborCost = Math.round(boxes * laborM2 * factor);
+
             let moldingCost = 0;
             if(document.getElementById('chk-mold-5000').checked) moldingCost += getNum('qty-mold-5000') * 5000;
             if(document.getElementById('chk-mold-15000').checked) moldingCost += getNum('qty-mold-15000') * 15000;
@@ -685,14 +689,12 @@
         function importFromFile() { document.getElementById('file-input').click(); }
         function handleFileImport(e) { const file = e.target.files[0]; const reader = new FileReader(); reader.onload = function(e) { const imported = JSON.parse(e.target.result); localStorage.setItem('chungin_v18_records', JSON.stringify(imported)); renderRecords(); alert('가져오기 성공'); }; reader.readAsText(file); }
         
-        // --- 이미지 캡처/공유 기능 개선 (잘림 방지) ---
         function shareQuote() { 
             showToast(); 
             const target = document.getElementById('capture-area');
             const originalMaxH = target.style.maxHeight;
             const originalOverflow = target.style.overflowY;
 
-            // 캡처를 위해 일시적으로 제한 해제
             target.style.maxHeight = 'none';
             target.style.overflowY = 'visible';
 
