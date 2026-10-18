@@ -38,3 +38,15 @@
 }
 .rail-foot b{font-size:15px;word-break:keep-all}
 .banner.warning{color:#735b43}
+
+/* Give the selected calligraphy the primary visual position on the home screen. */
+.hero-art{align-items:center;justify-content:center;padding:44px 28px 28px;min-width:0}
+.hero-brand-logo{display:block;width:100%;max-width:480px;height:auto;object-fit:contain}
+.hero-deco{font-family:inherit;font-style:normal;color:var(--green);font-size:12px;letter-spacing:0}
+.avatar{padding:0;border:0;background:transparent;border-radius:10px;overflow:hidden}
+.avatar img{display:block;width:100%;height:100%;object-fit:contain}
+@media(max-width:780px){
+ .hero-art{height:auto;min-height:0;padding:24px 32px 28px}
+ .hero-brand-logo{width:100%;max-width:300px;height:auto}
+ .hero-deco{display:block;position:static;grid-row:2;padding:16px 22px 0;color:var(--green)}
+}
