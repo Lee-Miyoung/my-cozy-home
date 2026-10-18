@@ -1,0 +1,40 @@
+/* Original CHAEPIUM calligraphy assets are used without redrawing. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.brand{display:block;padding:0 6px 25px}
+.brandmark{display:block;width:100%;height:auto;border:0;border-radius:0;background:transparent}
+.brandmark img{display:block;width:100%;height:auto;object-fit:contain}
+.desktop-brand{display:block;flex:0 1 170px;min-width:100px}
+.desktop-brand img{display:block;width:100%;height:auto;max-height:58px;object-fit:contain}
+.top-title{font-family:inherit;font-size:14px;min-width:0;overflow-wrap:anywhere}
+.topbar{background:var(--bg);gap:16px}
+.top-right{flex-shrink:0}
+.nav-btn:hover,.icon-btn:hover{background:#f0e7ee}
+.btn:hover{border-color:#957399}
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline-color:#744478}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#744478;box-shadow:0 0 0 3px #f0e7ee}
+.nav-btn,.task-title,.field label{color:var(--ink)}
+.task-meta,.stat-bottom,.stage-card-foot,.stage-num,.doc-details p,.field-help,.data-table th,.stage-tick,.icon-btn{color:var(--muted)}
+.task-title.complete{color:#716574}
+.chip{color:#503655;background:#f0e7ee}
+.chip.amber{color:#76521d}.chip.red{color:#923b34}.chip.blue{color:#405c7e}
+.filter-pill.on{border-color:#b892b5}
+.hero{background:linear-gradient(110deg,#f0e7ee,#faf7f4 60%,#efe1d3)}
+.rail-foot{border-color:var(--line)}
+.stage-heading h3{overflow-wrap:anywhere}
+.upcoming-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.upcoming-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px}
+.upcoming-card h3{font-size:14px}
+@media(max-width:1150px){.topbar{padding-inline:24px}.date-mark{display:none}.upcoming-card{padding:16px}}
+@media(max-width:780px){
+ .desktop-brand{display:none}
+ .mobile-brand{display:block;flex:0 1 142px;min-width:0}
+ .mobile-brand .brandmark{width:100%;height:auto;border-radius:0}
+ .mobile-brand img{width:100%;height:auto;max-height:63px;object-fit:contain}
+ .topbar{height:78px;padding-inline:16px;gap:12px}
+ .top-right{gap:8px}.avatar{display:none}
+ .bottom-nav button{color:#716574}
+ .upcoming-grid{grid-template-columns:1fr}
+ .upcoming .section-heading h2{font-size:22px}
+}
+.rail-foot b{font-size:15px;word-break:keep-all}
+.banner.warning{color:#735b43}

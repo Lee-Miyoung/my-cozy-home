@@ -1,0 +1,32 @@
+{
+  "id": "./",
+  "name": "채피움 CHAEPIUM — 나의 집짓기 기록",
+  "short_name": "채피움",
+  "description": "집을 짓는 모든 순간을, 채피움에. 일정·건축비·사진·문서를 기록해요.",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FAF7F4",
+  "theme_color": "#3B0F3F",
+  "icons": [
+    {
+      "src": "./assets/brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/brand/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
