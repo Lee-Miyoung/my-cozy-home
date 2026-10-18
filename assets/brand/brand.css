@@ -50,3 +50,58 @@
  .hero-brand-logo{width:100%;max-width:300px;height:auto}
  .hero-deco{display:block;position:static;grid-row:2;padding:16px 22px 0;color:var(--green)}
 }
+/* The home screen follows the supplied sunset brand board. */
+.home-header-nav{display:none}
+.home-screen .rail{display:none}
+.home-screen .workspace{margin-left:0}
+.home-screen .topbar{height:94px;max-width:1440px;margin:auto;border-bottom:0;padding-inline:40px;gap:28px}
+.home-screen .top-title,.home-screen .date-mark{display:none}
+.home-screen .desktop-brand{flex-basis:190px}
+.home-screen .home-header-nav{display:flex;align-items:center;justify-content:center;gap:25px;margin-left:auto}
+.home-header-nav button{border:0;background:transparent;padding:10px 0;color:var(--deep);font-size:13px;cursor:pointer;white-space:nowrap}
+.home-header-nav button:hover{color:#744478;text-decoration:underline;text-underline-offset:6px}
+.home-screen .content{max-width:1440px;padding:0 40px 80px}
+.hero-sunset{display:block;min-height:590px;border:0;border-radius:24px;isolation:isolate;background:#f7e9e3}
+.hero-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:65% center;z-index:-2}
+.hero-sunset::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(250,247,244,.98),rgba(250,247,244,.89) 27%,rgba(250,247,244,.56) 47%,rgba(250,247,244,0) 74%)}
+.hero-sunset .hero-content{min-height:590px;padding:55px 64px;max-width:620px;align-items:flex-start}
+.hero-sunset h1{font-size:clamp(40px,4.3vw,62px);line-height:1.22;letter-spacing:-.055em;margin:23px 0 20px;color:#3b0f3f}
+.hero-sunset .hero-content>p{font-size:15px;line-height:1.9;color:#503655}
+.hero-sunset .button-line{margin-top:28px;gap:10px}
+.hero-sunset .btn.primary{padding:14px 20px;background:#3b0f3f;border-color:#3b0f3f;box-shadow:0 5px 18px #3b0f3f18}
+.hero-sunset .hero-secondary{padding:14px 18px;background:#fffdfbf2;color:#3b0f3f}
+.hero-image-label{position:absolute;bottom:16px;right:18px;background:#fffdfbe8;color:#503655;border-radius:20px;padding:4px 10px;font-size:10px}
+.home-project .section-heading{align-items:center;gap:16px}
+.home-project h2{margin-top:6px}
+.home-shortcuts{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px;margin:23px 0 26px}
+.home-shortcut{border:1px solid var(--line);border-radius:17px;background:var(--paper);padding:19px 8px;display:grid;justify-items:center;gap:12px;color:var(--deep);min-width:0}
+.home-shortcut span{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#f0e7ee;color:#613568}
+.home-shortcut:nth-child(3n+2) span{background:#f7e9e5;color:#87513d}
+.home-shortcut:nth-child(3n) span{background:#eee8f5;color:#634382}
+.home-shortcut b{font-size:12px;font-weight:600}
+.home-shortcut:hover{border-color:#957399;transform:translateY(-2px)}
+@media(max-width:1150px){
+ .home-screen .topbar{padding-inline:26px;gap:20px}.home-screen .home-header-nav{gap:18px}.home-screen .desktop-brand{flex-basis:155px}
+ .home-screen .content{padding-inline:26px}.hero-sunset .hero-content{padding:45px;max-width:560px}.home-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:780px){
+ .home-screen .topbar{height:82px;padding-inline:20px}.home-screen .home-header-nav{display:none}.home-screen .top-right{margin-left:auto}
+ .home-screen .content{padding:0 16px calc(100px + env(safe-area-inset-bottom))}
+ .hero-sunset{min-height:620px;border-radius:20px}
+ .hero-scene{object-position:68% bottom}
+ .hero-sunset::before{background:linear-gradient(180deg,#faf7f4 0%,rgba(250,247,244,.98) 15%,rgba(250,247,244,.83) 40%,rgba(250,247,244,.1) 74%)}
+ .hero-sunset .hero-content{min-height:0;max-width:none;padding:32px 25px 200px}
+ .hero-sunset h1{font-size:40px;margin:18px 0 15px}
+ .hero-sunset .hero-content>p{font-size:13px}
+ .hero-sunset .eyebrow{font-size:9px;letter-spacing:.15em}
+ .hero-sunset .button-line{margin-top:22px;gap:8px}
+ .hero-sunset .btn.primary,.hero-sunset .hero-secondary{padding:12px 14px;font-size:11px}
+ .home-project .section-heading{align-items:flex-start}.home-project .section-heading p{max-width:260px}
+ .home-project .section-heading>.btn{padding:8px;font-size:10px}
+ .home-project h2{font-size:24px;overflow-wrap:anywhere}
+ .home-shortcuts{gap:8px;margin-top:18px}.home-shortcut{padding:13px 4px;gap:8px;border-radius:14px}.home-shortcut b{font-size:10px}.home-shortcut span{width:40px;height:40px;border-radius:12px}
+}
+@media(max-width:360px){.hero-sunset h1{font-size:35px}.hero-sunset .hero-content{padding-inline:21px}.hero-sunset .button-line{flex-direction:column;align-items:flex-start}.hero-sunset{min-height:640px}}
+.hero-picture{position:absolute;inset:0;z-index:-2;display:block}
+.hero-picture .hero-scene{position:static;display:block}
+@media(max-width:780px){.hero-picture .hero-scene{object-position:center bottom}}
