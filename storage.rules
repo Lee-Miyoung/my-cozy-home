@@ -1,0 +1,28 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function member(pid) {
+      return request.auth != null &&
+        firestore.exists(/databases/(default)/documents/familyProjects/$(pid)) &&
+        (
+          firestore.get(/databases/(default)/documents/familyProjects/$(pid)).data.ownerUid == request.auth.uid ||
+          (request.auth.token.email_verified == true &&
+          request.auth.token.email in firestore.get(/databases/(default)/documents/familyProjects/$(pid)).data.memberEmails)
+        );
+    }
+    function owner(pid) {
+      return request.auth != null &&
+        firestore.exists(/databases/(default)/documents/familyProjects/$(pid)) &&
+        firestore.get(/databases/(default)/documents/familyProjects/$(pid)).data.ownerUid == request.auth.uid;
+    }
+    match /familyPhotos/{pid}/{uid}/{filename} {
+      allow read: if member(pid);
+      allow create: if member(pid) && request.auth.uid == uid &&
+        request.resource.size <= 5 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow update: if false;
+      allow delete: if member(pid) && (request.auth.uid == uid || owner(pid));
+    }
+    match /{allPaths=**} { allow read, write: if false; }
+  }
+}
