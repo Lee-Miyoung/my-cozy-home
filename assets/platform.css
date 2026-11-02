@@ -80,3 +80,47 @@
  .family-onboarding-actions{display:grid;grid-template-columns:1fr}
  .family-onboarding-actions .btn{min-height:48px;justify-content:center;text-align:center}
 }
+
+/* At-a-glance family project board */
+.family-glance{padding:22px 24px;margin-bottom:20px;background:#fff}
+.family-glance-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.family-glance-heading .eyebrow{font-size:10px;color:#835090}
+.family-glance-heading h2{font-size:22px;line-height:1.35;margin:4px 0 3px;color:#341f39}
+.family-glance-heading p{margin:0;font-size:13px;color:#75697a}
+.family-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.family-metrics button{border:1px solid #eae2eb;background:#faf7fb;padding:14px 14px 13px;border-radius:12px;text-align:left;display:flex;flex-direction:column;min-width:0;color:#302b35;min-height:115px}
+.family-metrics button:focus-visible,.family-metrics button:hover{border-color:#9e6ba9;outline-offset:2px}
+.family-metrics small{font-size:12px;color:#716378;font-weight:600}
+.family-metrics strong{font-size:25px;line-height:1.45;color:#45204c;letter-spacing:-.04em;overflow-wrap:anywhere}
+.family-metrics span{font-size:11px;line-height:1.4;color:#827388;overflow-wrap:anywhere}
+.family-upcoming{margin-top:17px;border-top:1px solid #efe7f0;padding-top:15px}
+.family-upcoming-title{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.family-upcoming-title h3{font-size:16px;margin:0}
+.family-upcoming-row{display:grid;grid-template-columns:minmax(105px,135px) minmax(0,1fr) 90px;align-items:center;gap:10px;border-bottom:1px solid #f0e9f0;padding:11px 2px}
+.family-upcoming-row span{font-size:12px;color:#65516a}
+.family-upcoming-row span.is-late{color:#b54738;font-weight:700}
+.family-upcoming-row strong{font-size:13px;font-weight:650;line-height:1.55;overflow-wrap:anywhere}
+.family-upcoming-row small{text-align:right;font-size:11px;color:#85758b}
+.family-upcoming-empty{font-size:13px;color:#817286;padding:12px 0 2px;margin:0}
+.family-onboarding .family-create-cta{background:#47204e;color:#fff;border-color:#47204e;font-size:15px;padding:14px 18px;min-height:54px;box-shadow:0 5px 13px #47204e1b}
+.family-onboarding-note{color:#6a546f;background:#f8f2f9;padding:12px 14px;border-radius:10px;margin:12px 0 0;font-size:12px}
+@media(max-width:900px){.family-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){
+ .family-glance{padding:16px 14px;margin-bottom:14px}
+ .family-glance-heading{align-items:flex-start}
+ .family-glance-heading h2{font-size:20px}
+ .family-glance-heading .btn{font-size:11px;padding:7px 8px;white-space:nowrap}
+ .family-glance-heading p{font-size:12px}
+ .family-metrics{gap:8px}
+ .family-metrics button{min-height:95px;padding:11px;border-radius:10px}
+ .family-metrics strong{font-size:22px}
+ .family-metrics small{font-size:11px}
+ .family-metrics span{font-size:10px}
+ .family-upcoming-title h3{font-size:15px}
+ .family-upcoming-row{grid-template-columns:92px 1fr;gap:2px 8px;padding:10px 0}
+ .family-upcoming-row span{font-size:11px}
+ .family-upcoming-row strong{font-size:13px}
+ .family-upcoming-row small{text-align:left;grid-column:2}
+ .page-home .project-hero .project-photo{max-height:175px;overflow:hidden}
+ .page-home .project-hero .project-photo img{max-height:175px;object-fit:cover}
+}
