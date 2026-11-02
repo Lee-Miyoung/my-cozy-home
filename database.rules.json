@@ -23,7 +23,7 @@
       "sharedProject": {
         ".read": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor')",
         ".write": "auth != null && root.child('familyAccess').child(auth.uid).val() === 'owner'",
-        ".validate": "newData.hasChildren(['title','stage','progress','updatedAt','project','tasks','expenses','documents']) && newData.child('title').isString() && newData.child('title').val().length <= 120 && newData.child('stage').isString() && newData.child('stage').val().length <= 100 && newData.child('progress').isNumber() && newData.child('progress').val() >= 0 && newData.child('progress').val() <= 100 && newData.child('updatedAt').isNumber()"
+        ".validate": "newData.hasChildren(['title','stage','progress','updatedAt','project']) && newData.child('title').isString() && newData.child('title').val().length <= 120 && newData.child('stage').isString() && newData.child('stage').val().length <= 100 && newData.child('progress').isNumber() && newData.child('progress').val() >= 0 && newData.child('progress').val() <= 100 && newData.child('updatedAt').isNumber()"
       },
       "contracts": {
         ".read": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor')",
