@@ -21,13 +21,30 @@ async function uploadFiles(s){for(const f of refs(s)){if(known.has(f.id))continu
 async function fetchFile(id){if(!role)throw Error('가족 로그인이 필요해요.');const s=await get(ref(db,FILES+id));if(!s.exists())throw Error('가족 파일을 찾지 못했어요.');const v=s.val(),response=await fetch(v.payload),blob=await response.blob();return{id,name:v.name,type:v.mime,size:blob.size,blob}}
 function normalizeState(value){const x=JSON.parse(JSON.stringify(value||{}));for(const k of ['tasks','expenses','journals','documents','designs','contacts','care','stages'])if(!Array.isArray(x[k]))x[k]=[];return x}
 async function apply(){if(!pending||!api||syncing||api.isBusy()||api.modalOpen())return;const x=pending;if(x.revision===applied){pending=null;return}syncing=true;try{const fixed=normalizeState(x.state);await api.apply(fixed,ID);applied=x.revision;pending=null;known=new Set(refs(fixed).map(f=>f.id));note('삼남매 공동 프로젝트 동기화 완료')}catch(e){note('화면 동기화 실패: '+e.message)}finally{syncing=false;ui()}}
-async function changed(snapshot){live=snapshot.val();version=live?.revision||0;if(live?.state){pending=live;await apply()}else note('로그인은 완료됐어요. 아직 가족 공유 프로젝트가 생성되지 않았어요. 기존 기록이나 백업을 먼저 가져와야 해요.');ui();api?.repaint()}
+async function changed(snapshot){live=snapshot.val();version=live?.revision||0;if(live?.state){pending=live;await apply()}else note(role==='owner'?'관리자 로그인 완료! 공동 프로젝트 만들기를 누르면 시작할 수 있어요.':'로그인 완료! 관리자가 프로젝트를 만들면 자동으로 나타나요.');ui();api?.repaint()}
 async function authorize(user){if(off){off();off=null}uid=user?.uid||'';role='';live=null;version=applied=0;pending=null;known=new Set();ui();if(!uid){note('가족 계정으로 로그인하면 함께 사용할 수 있어요.');api?.repaint();return}try{const p=await get(ref(db,'familyAccess/'+uid));role=member(p.val())?p.val():'';if(!role){note('등록되지 않은 계정입니다. UID: '+uid);ui();api?.repaint();return}off=onValue(ref(db,TARGET),changed,e=>note('Firebase 권한 오류: '+e.message));note('가족 계정 연결됨');ui();api?.repaint()}catch(e){note('가족 로그인 확인 실패: '+e.message);ui()}}
 async function login(){try{if(auth.currentUser)await signOut(auth);else await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(e.code)){try{await signInWithRedirect(auth,new GoogleAuthProvider())}catch(err){note('로그인 실패: '+err.message)}}else note('구글 로그인 실패: '+e.message)}}
-async function start(){if(role!=='owner'||!api)return note('관리자 계정으로 로그인해 주세요.');if(live)return note('이미 공동 프로젝트가 존재해요.');const x=api.context();  if(!confirm('현재 '+x.state.project.title+' 프로젝트를 삼남매가 공동으로 수정하도록 연결할까요? 기존 개인 기록은 삭제되지 않습니다.'))return;
-try{note('원본을 보존하고 사진·서류 압축 업로드 중…');await uploadFiles(x.state);const first={revision:1,updatedAt:Date.now(),state:JSON.parse(JSON.stringify(x.state))};const result=await runTransaction(ref(db,TARGET),current=>current?undefined:first,{applyLocally:false});if(!result.committed)throw Error('이미 프로젝트가 등록되어 있습니다.');live=result.snapshot.val();version=1;pending=live;await apply();note('엄마의 뜰 공동 프로젝트 연결 완료');ui()}catch(e){note('공유 실패: '+e.message);alert('가족 프로젝트 공유 실패: '+e.message)}}
+async function start(){
+ if(role!=='owner'||!api){note('관리자 계정으로 로그인해 주세요.');return}
+ if(live){note('이미 가족 프로젝트가 있어요. 새로 만들 필요가 없어요.');return}
+ const c=api.context(),old=(c.activeId!==ID&&c.state?.project?.title?.trim()==='엄마의 뜰')?c.state:null;
+ const message=old?"기존 ‘엄마의 뜰’ 기록을 삼남매 공동 프로젝트로 연결할까요? 원본은 남겨둡니다.":"삼남매가 함께 사용할 ‘엄마의 뜰’ 프로젝트를 지금 새로 만들까요? 예전 기록은 가져오지 않습니다.";
+ if(!confirm(message))return;
+ try{
+  note('가족 공동 프로젝트를 생성하고 있어요…');
+  const firstState=old||api.newFamily();
+  if(old)await uploadFiles(firstState);
+  const first={revision:1,updatedAt:Date.now(),state:JSON.parse(JSON.stringify(firstState))};
+  const result=await runTransaction(ref(db,TARGET),current=>current?undefined:first,{applyLocally:false});
+  if(!result.committed){note('다른 기기에서 이미 가족 프로젝트를 만들었어요. 동기화를 다시 확인해 주세요.');await bridge.refresh();return}
+  live=result.snapshot.val();version=1;pending=live;await apply();
+  if(applied===1)note('엄마의 뜰 공동 프로젝트가 만들어졌어요. 삼남매가 함께 기록할 수 있어요.');
+  else note('프로젝트는 만들어졌지만 화면 연결을 확인해야 해요. 동기화 다시 확인을 눌러 주세요.');
+  ui();
+ }catch(e){note('프로젝트 만들기 실패: '+e.message);alert('프로젝트 생성 오류: '+e.message)}
+}
 async function save(snapshot){if(!role||!live||!api)throw Error('가족 공유가 연결되지 않았어요.');if(pending||version!==applied)throw Error('다른 가족이 수정했어요. 최신 기록을 확인하고 다시 수정해 주세요.');await uploadFiles(snapshot);const base=applied;const result=await runTransaction(ref(db,TARGET),cur=>{if(!cur||cur.revision!==base)return;return{revision:base+1,updatedAt:Date.now(),state:JSON.parse(JSON.stringify(snapshot))}},{applyLocally:false});if(!result.committed)throw Error('다른 가족이 먼저 저장했습니다. 변경 내용을 다시 확인해 주세요.');live=result.snapshot.val();version=applied=live.revision;note('변경사항이 삼남매에게 저장됐어요.')}
-const bridge={familyId:ID,save,fetchFile,canView:()=>!!role,hasCloud:()=>!!live,update:ui,login,
+const bridge={familyId:ID,save,fetchFile,canView:()=>!!role,hasCloud:()=>!!live,update:ui,login,create:start,
  getStatus:()=>({uid,role,cloud:!!live,revision:version,message:statusText}),
  refresh:async()=>{if(!role)return note('먼저 등록된 가족 계정으로 로그인해 주세요.');try{const snap=await get(ref(db,TARGET));await changed(snap);api?.repaint();}catch(e){note('동기화 확인 실패: '+e.message)}}
 };
