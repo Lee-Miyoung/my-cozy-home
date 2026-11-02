@@ -187,6 +187,7 @@ async function applyFamilyState(remote,familyId){
 }
 window.chaeFamilyApp={
  context:()=>({activeId:catalog.activeId,state:state?clone(state):null}),
+ newFamily:()=>{const fresh=freshState();fresh.project.title='엄마의 뜰';fresh.project.description='가족이 함께 기록하는 집짓기 과정';return fresh;},
  apply:applyFamilyState,
  getFile:key=>read('attachments',key),
  isBusy:()=>busy,
