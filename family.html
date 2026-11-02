@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3B0F3F">
+<title>가족 현장앨범 | 채피움</title>
+<meta name="description" content="엄마 집이 만들어지는 과정. 가족끼리 안전하게 사진과 기록을 공유해요.">
+<link rel="icon" href="./assets/brand/favicon.ico">
+<link rel="stylesheet" href="./assets/family.css?v=family-1">
+</head>
+<body>
+<header class="top">
+ <a href="./index.html#home" class="back">← 내 집 기록</a>
+ <a href="./index.html#home" class="logo"><img src="./assets/brand/logo-horizontal.png" alt="채피움 CHAEPIUM"></a>
+ <span class="top-note">FAMILY ALBUM</span>
+</header>
+<main class="shell">
+ <div class="intro"><span class="eyebrow">OUR HOME, OUR STORY</span><h1>엄마 집을 함께 짓는 시간</h1><p>멀리 있어도, 가까이 있어도. 우리 가족이 남기는 현장 사진과 이야기.</p></div>
+ <div id="status" class="status" role="status" aria-live="polite">연결 상태를 확인하고 있어요.</div>
+ <section id="login" class="panel" hidden><h2>가족 전용 로그인</h2><p>초대받은 구글 계정으로 로그인하면 공유된 사진을 볼 수 있어요.</p><button id="signIn" class="primary">구글 계정으로 로그인</button></section>
+ <section id="workspace" hidden>
+  <div class="userbar"><span id="who"></span><button id="signOut" class="secondary">로그아웃</button></div>
+  <section id="connectPanel" class="panel">
+   <h2>가족 프로젝트 연결</h2><p>처음 공유한다면 관리자가 가족 앨범을 만들고, 언니·동생에게 초대 링크를 보내주세요.</p>
+   <div class="actions"><button id="create" class="primary">새 가족 앨범 만들기</button></div>
+   <label>초대받은 앨범 코드<input id="joinId" placeholder="가족에게 받은 앨범 코드" autocomplete="off"></label>
+   <button id="join" class="secondary">앨범 열기</button>
+  </section>
+  <section id="albumPanel" hidden>
+   <div class="panel albumHead"><div><span class="eyebrow">FAMILY PROJECT</span><h2 id="albumTitle">우리 가족의 집</h2><p id="albumStage" class="muted"></p></div><div class="headActions"><button id="copyInvite" class="secondary">초대 링크 복사</button><button id="leaveAlbum" class="secondary">다른 앨범</button></div></div>
+   <section id="ownerControls" class="panel" hidden><h3>가족 초대 및 공유 진행상황 <span class="chip">관리자 전용</span></h3><p>가족 사진·메모만 공유합니다. 정확한 집 주소·건축비·계약서는 여기에 올리지 마세요.</p>
+    <label>가족 이메일 (쉼표 또는 줄바꿈으로 구분)<textarea id="memberEmails" rows="2" placeholder="언니@gmail.com, 동생@gmail.com"></textarea></label>
+    <label>진행 상황<input id="stage" placeholder="예: 철거 준비 / 설계 진행 중" maxlength="100"></label><button id="saveSettings" class="secondary">공유 설정 저장</button>
+   </section>
+   <section class="panel"><div class="panelHeading"><div><h3>현장 사진과 이야기</h3><p>내가 못 간 날도, 가족이 남긴 현장의 시간이 이어져요.</p></div></div>
+    <form id="entryForm">
+     <div class="formgrid"><label>촬영 날짜<input name="date" type="date" required></label><label>공사 단계<input name="stage" maxlength="60" placeholder="예: 철거, 설계, 골조"></label></div>
+     <label>현장 메모<textarea name="note" rows="3" maxlength="1200" placeholder="오늘 현장에서 본 모습이나 남길 이야기를 적어주세요."></textarea></label>
+     <label class="filepick">사진 선택 (1회 최대 8장)<input id="photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple></label>
+     <div id="chosen" class="muted"></div><button id="upload" class="primary" type="submit">가족 앨범에 기록하기</button>
+    </form>
+   </section>
+   <div class="sectionHeading"><h3>가족 현장일기</h3><span id="entryCount" class="muted"></span></div><div id="entries" class="entries"><p class="muted">사진을 불러오는 중입니다.</p></div>
+  </section>
+ </section>
+</main>
+<footer>채피움 · 집을 짓는 모든 순간을, 채피움에. <a href="./index.html#home">개인 기록으로 돌아가기</a></footer>
+<script type="module" src="./assets/family.js?v=family-1"></script>
+</body>
+</html>
