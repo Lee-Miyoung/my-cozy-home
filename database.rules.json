@@ -22,14 +22,21 @@
       },
       "sharedProject": {
         ".read": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor')",
-        ".write": "auth != null && root.child('familyAccess').child(auth.uid).val() === 'owner'",
-        ".validate": "newData.hasChildren(['title','stage','progress','updatedAt','project']) && newData.child('title').isString() && newData.child('title').val().length <= 120 && newData.child('stage').isString() && newData.child('stage').val().length <= 100 && newData.child('progress').isNumber() && newData.child('progress').val() >= 0 && newData.child('progress').val() <= 100 && newData.child('updatedAt').isNumber()"
+        ".write": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor') && newData.exists() && ((!data.exists() && root.child('familyAccess').child(auth.uid).val() === 'owner' && newData.child('revision').val() === 1) || (data.exists() && newData.child('revision').val() === data.child('revision').val() + 1))",
+        ".validate": "newData.hasChildren(['revision','updatedAt','state']) && newData.child('revision').isNumber() && newData.child('updatedAt').isNumber() && newData.child('state').child('project').child('title').isString()"
       },
       "contracts": {
         ".read": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor')",
         "$fid": {
           ".write": "auth != null && root.child('familyAccess').child(auth.uid).val() === 'owner'",
           ".validate": "newData.hasChildren(['name','mime','payload','createdAt']) && newData.child('name').isString() && newData.child('name').val().length <= 180 && newData.child('mime').isString() && (newData.child('mime').val() === 'application/pdf' || newData.child('mime').val() === 'image/jpeg' || newData.child('mime').val() === 'image/png') && newData.child('payload').isString() && newData.child('payload').val().length <= 450000 && newData.child('createdAt').isNumber()"
+        }
+      },
+      "sharedFiles": {
+        "$id": {
+          ".read": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor')",
+          ".write": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor') && ((!data.exists() && newData.child('authorUid').val() === auth.uid) || (data.exists() && (data.child('authorUid').val() === auth.uid || root.child('familyAccess').child(auth.uid).val() === 'owner') && !newData.exists()))",
+          ".validate": "newData.hasChildren(['authorUid','name','mime','payload','createdAt']) && newData.child('authorUid').isString() && newData.child('name').isString() && newData.child('name').val().length <= 180 && newData.child('mime').isString() && newData.child('payload').isString() && newData.child('payload').val().length <= 600000 && newData.child('createdAt').isNumber()"
         }
       }
     }
