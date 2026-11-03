@@ -405,3 +405,61 @@
  .gallery-zoom-tools button{width:25px;min-width:25px}
 }
 @media(prefers-reduced-motion:reduce){.gallery-stage>img#galleryImage{transition:none}}
+
+
+/* Integrated Moms Garden activity notes and family design references */
+.task-today-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 22px;margin:22px 0 18px;background:#fcfafc}
+.task-today-card h2{font-family:var(--font-body);font-weight:700;letter-spacing:-.03em;font-size:21px;margin:3px 0 2px}
+.task-today-card p{color:#756c79;font-size:12px;line-height:1.7;max-width:370px}
+.task-today-card>p strong{color:#49354f}
+.task-log-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:start;column-gap:12px;row-gap:0;min-width:0;border-bottom:1px solid #eee8f0;padding:11px 0}
+.task-log-row .check{margin-top:5px}
+.task-log-row .task-copy{align-self:center;overflow:hidden}
+.task-log-row .task-copy>strong{display:block;line-height:1.55;font-weight:650;color:#342c37;font-size:13px}
+.task-log-row .task-copy>p{margin:1px 0 0}
+.task-log-row .task-copy .task-latest-note{color:#66566b;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;font-size:11px}
+.task-log-row .task-copy .task-latest-note span{color:#806a87;font-weight:650}
+.task-log-row .task-copy .task-log-empty{color:#998b9c;font-size:11px}
+.task-row-actions{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.task-row-actions .record-actions{margin:0}
+.task-row-actions .icon-btn{width:29px;height:33px;flex-basis:29px}
+.task-record-cta{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;min-height:32px;padding:6px 10px;border-color:#d9cbdf;color:#60496a;background:#f9f5fa;font-size:11px}
+.task-record-cta:hover{background:#eee4f1}
+.task-log-details{grid-column:2/-1;margin-top:9px;min-width:0;border-top:1px dashed #e7dde9;padding:8px 0 0}
+.task-log-details summary{cursor:pointer;list-style:none;color:#7e6a81;font-size:11px;font-weight:650;display:flex;align-items:center;gap:8px}
+.task-log-details summary::-webkit-details-marker{display:none}
+.task-log-details summary:before{content:"▸";font-size:13px;color:#806a87}
+.task-log-details[open] summary:before{content:"▾"}
+.task-log-details summary span{color:#aaa0ac;font-weight:450}
+.task-log-history{display:grid;gap:9px;margin:12px 0 4px}
+.task-log-entry{padding:12px;border:1px solid #eee7ef;background:#fcfafd;border-radius:10px;overflow:hidden}
+.task-log-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.task-log-header .record-actions{margin:0}
+.task-log-entry>p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:#594e5e;line-height:1.65;margin:5px 0 10px}
+.task-log-photo-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:7px;max-width:550px}
+.task-log-photo-list .photo-thumb{aspect-ratio:1;border-radius:7px;height:auto;padding:0;overflow:hidden}
+.task-log-photo-list .photo-thumb img{object-fit:cover;width:100%;height:100%}
+.family-design-intro{display:flex;align-items:center;gap:10px;padding:11px 15px;margin:0 0 19px;background:#f5f0f6;border:1px solid #e9ddeb;color:#59465f;border-radius:11px}
+.family-design-intro>span{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;background:#e9deed;border-radius:9px;color:#5b3c64}
+.family-design-intro p{font-size:12px;line-height:1.6;color:#67576c}
+.family-design-intro strong{color:#49354f}
+.design-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;position:relative;height:100%;width:100%}
+.design-photo-grid[data-count="1"]{grid-template-columns:1fr}
+.design-photo-grid[data-count="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.design-photo-thumb{padding:0;border:0;min-width:0;min-height:0;background:#eee7ef;overflow:hidden}
+.design-photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.design-photo-count{position:absolute;right:8px;bottom:8px;color:#fff;background:#352840bd;border-radius:8px;font-size:12px;padding:5px 9px}
+.design-reference-links{display:grid;gap:7px;margin:12px 0;min-width:0}
+.design-reference-links a{max-width:100%;font-size:12px;display:inline-flex;overflow-wrap:anywhere;word-break:break-word;color:#604e6a;text-decoration:underline;text-underline-offset:3px}
+.family-ideas-shortcut{font-family:inherit;cursor:pointer;text-align:left;width:100%;box-sizing:border-box}
+@media(max-width:800px){
+ .task-today-card{flex-direction:column;align-items:flex-start;padding:15px 17px;gap:7px}
+ .task-log-row{grid-template-columns:28px minmax(0,1fr);column-gap:10px}
+ .task-row-actions{grid-column:2;justify-content:flex-start;margin-top:9px}
+ .task-log-details{grid-column:2}
+ .task-record-cta{min-height:32px;padding:6px 12px}
+}
+@media(max-width:360px){
+ .task-log-photo-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .task-today-card h2{font-size:18px}
+}
