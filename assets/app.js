@@ -211,7 +211,16 @@ function familyHomeDocuments(){
 }
 function familyActivityRow(item){
  const record=item.row,isMemo=item.kind==='task-memo',content=isMemo?record.memo:activityContent(record),kind=isMemo?'할 일 메모':record.type||'현장 기록';
- return `<button type="button" class="record-feed-item" data-action="${isMemo?'view-task':'view-record'}" data-id="${esc(record.id)}"><span class="record-feed-date">${dateLabel(item.date)} · ${esc(kind)}</span><strong>${esc(record.title)}</strong>${content?`<span class="record-feed-preview">${esc(content)}</span>`:''}${!isMemo&&record.photos?.length?`<span class="record-photo-indicator">${icon('camera',13)} ${record.photos.length}장</span>`:''}</button>`;
+ const photos=!isMemo&&Array.isArray(record.photos)?record.photos.filter(p=>p?.id):[];
+ const action=isMemo?'view-task':'view-record';
+ return `<article class="record-feed-item record-entry" ${isMemo?'':`data-record-id="${esc(record.id)}"`}>
+ <button type="button" class="record-feed-open" data-action="${action}" data-id="${esc(record.id)}" aria-label="${esc(record.title)} 상세보기">
+ <span class="record-feed-date">${dateLabel(item.date)} <span class="record-feed-type">· ${esc(kind)}</span></span>
+ <strong>${esc(record.title)}</strong>
+ ${content?`<span class="record-feed-preview">${esc(content)}</span>`:`<span class="record-feed-preview record-feed-no-note">등록된 내용은 상세보기에서 확인할 수 있어요.</span>`}
+ <span class="record-feed-more">상세보기 ${icon('arrow',13)}</span></button>
+ ${photos.length?`<div class="record-feed-thumbs" aria-label="${esc(record.title)} 첨부 사진">${photos.slice(0,3).map((p,n)=>`<button type="button" class="record-feed-photo" data-action="preview-file" data-id="${esc(p.id)}" aria-label="${esc(record.title)} 사진 ${n+1} 크게 보기"><img data-blob="${esc(p.id)}" alt="${esc(record.title)} 현장 사진 ${n+1}" loading="lazy"></button>`).join('')}${photos.length>3?`<span class="record-feed-photo-more">+${photos.length-3}장</span>`:''}</div>`:''}
+ </article>`;
 }
 function familyUpcomingRow(t,today){
  return `<button type="button" class="record-upcoming-item" data-action="view-task" data-id="${esc(t.id)}"><span class="record-upcoming-date ${t.due<today?'is-late':''}">${dateLabel(t.due)}${t.due<today?' · 기한 지남':''}</span><strong>${esc(t.title)}</strong>${t.memo?`<span class="record-upcoming-note">${esc(t.memo)}</span>`:''}</button>`;
@@ -236,7 +245,7 @@ function familyRecordHome(){
  <div class="family-main-info"><span class="eyebrow">FAMILY PROJECT</span><h2>${esc(state.project.title||'엄마의 뜰')}</h2><p>${esc(state.project.description||'삼남매가 함께 남기는 우리 집 이야기')}</p><div class="family-main-counts"><button data-nav="baseline"><b>${photos.length}</b> 사진</button><button data-nav="files"><b>${docs.length}</b> 서류</button><button data-nav="journal"><b>${state.journals.length}</b> 활동 기록</button></div><div class="family-main-actions"><button class="btn sm" data-open="journal">${icon('plus',14)} 사진 등록</button><button class="btn sm" data-nav="baseline">전·후 사진 비교</button><button class="btn sm" data-nav="design">가족 아이디어</button></div></div></section>
  <div class="family-main-media">
  <section class="card family-media-panel family-home-photos family-home-photo-group" aria-label="등록된 현장 사진"><div class="family-media-heading"><div><h2>최근 현장 사진 <span>${photos.length}</span></h2><p>사진을 누르면 확대하고 연속으로 볼 수 있어요.</p></div><button class="btn sm" data-nav="journal">전체 보기</button></div>
- ${photos.length?`<div class="family-home-photo-grid">${photos.slice(0,6).map(p=>`<button type="button" class="family-home-photo-thumb" data-action="preview-file" data-id="${esc(p.id)}" aria-label="${esc(p.caption||p.name)} 사진 보기"><img data-blob="${esc(p.id)}" alt="${esc(p.caption||p.name)}" loading="lazy"></button>`).join('')}</div>${photos.length>6?`<p class="family-media-more">외 ${photos.length-6}장 · 사진을 누르면 전체를 넘겨볼 수 있어요.</p>`:''}`:`<div class="family-media-empty">${icon('camera',21)}<span>등록된 사진이 없어요.</span><button class="btn sm" data-open="journal">사진 추가</button></div>`}
+ ${photos.length?`<div class="family-home-photo-grid">${photos.slice(0,4).map(p=>`<button type="button" class="family-home-photo-thumb" data-action="preview-file" data-id="${esc(p.id)}" aria-label="${esc(p.caption||p.name)} 사진 보기"><img data-blob="${esc(p.id)}" alt="${esc(p.caption||p.name)}" loading="lazy"></button>`).join('')}</div>${photos.length>4?`<p class="family-media-more">외 ${photos.length-4}장 · 사진을 누르면 전체를 넘겨볼 수 있어요.</p>`:''}`:`<div class="family-media-empty">${icon('camera',21)}<span>등록된 사진이 없어요.</span><button class="btn sm" data-open="journal">사진 추가</button></div>`}
  </section>
  <section class="card family-media-panel family-home-docs" aria-label="등록된 서류"><div class="family-media-heading"><div><h2>등록 서류 <span>${docs.length}</span></h2><p>제목을 누르면 파일과 메모를 확인할 수 있어요.</p></div><button class="btn sm" data-nav="files">전체 보기</button></div>
  <div class="family-doc-list">${docs.length?docs.slice(0,4).map(familyDocumentRow).join(''):`<div class="family-media-empty">${icon('folder',21)}<span>아직 등록된 서류가 없어요.</span><button class="btn sm" data-open="document">서류 추가</button></div>`}</div>
@@ -451,7 +460,7 @@ function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.
 let gallerySession=null;
 function galleryItemsForClick(button,key){
  const base=button?.closest('.baseline-category');
- const record=button?.closest('.baseline-record,.journal-entry,.task-log-entry');
+ const record=button?.closest('.baseline-record,.journal-entry,.task-log-entry,.record-entry');
  const familyPhotos=button?.closest('.family-home-photo-group');
  const pair=button?.closest('.baseline-pair');
  let photos=[];
