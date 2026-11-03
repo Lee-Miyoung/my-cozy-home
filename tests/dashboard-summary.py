@@ -62,6 +62,21 @@ with sync_playwright() as p:
         assert page.evaluate(READ)==state, 'Rendering must not rewrite stored data'
         page.locator('.summary-photo-empty').click();page.locator('form[data-form="project"]').wait_for()
         page.keyboard.press('Escape')
+        if case=='middle':
+            page.locator('.summary-record').click();page.locator('form[data-form="journal"]').wait_for();page.keyboard.press('Escape')
+            page.locator('.summary-plan').click();page.locator('.phase-timeline').wait_for()
+            page.goto(URL+'#home');page.locator('.project-summary').wait_for()
+            page.locator('.summary-photo-empty').click()
+            form=page.locator('form[data-form="project"]')
+            form.locator('[name="cover"]').set_input_files(str(ROOT/'assets/brand/icon-192.png'))
+            form.locator('[type="submit"]').click();form.wait_for(state='hidden')
+            page.wait_for_function('document.querySelector(".project-summary .project-photo img")?.naturalWidth>0')
+            assert page.locator('.summary-photo-edit').count()==1
+            for width in [1440,780,390,320]:
+                page.set_viewport_size({'width':width,'height':1000})
+                assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),('cover',width)
+                assert page.locator('.project-photo img').evaluate('(el)=>el.getBoundingClientRect().height>0')
+            page.locator('.summary-photo-edit').click();page.locator('form[data-form="project"]').wait_for();page.keyboard.press('Escape')
         if case=='empty':
             for nav,kind,label in [('journal','journal','사진 등록하기'),('budget','expense','비용 등록하기'),('files','document','서류 등록하기'),('design','design','자재 추가하기'),('stages','task','일정 등록하기')]:
                 page.goto(URL+'#'+nav);page.locator('.empty button',has_text=label).click();page.locator(f'form[data-form="{kind}"]').wait_for();page.keyboard.press('Escape')

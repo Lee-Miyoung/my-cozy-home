@@ -151,3 +151,41 @@
 .family-glance-heading h2{overflow-wrap:anywhere}
 @media(max-width:900px){.page-home .project-summary{grid-template-columns:minmax(0,1fr)}.page-home .project-summary .project-photo{height:150px;min-height:0;border-left:0;border-top:1px solid #ECE7EF}.page-home .project-summary .project-photo>img{height:150px;min-height:0}.summary-photo-empty{min-height:0;padding:18px;gap:8px}.page-home .project-summary .project-hero-body{padding:22px}.page-home .project-summary h2{font-size:28px}}
 @media(max-width:400px){.page-home .project-summary .project-hero-body{padding:18px 16px}.page-home .project-summary h2{font-size:26px}.summary-progress-label{gap:8px}.summary-progress-label strong{font-size:20px}.summary-status{font-size:13px}.summary-stage{font-size:12px;padding:8px}.page-home .project-summary .summary-description{font-size:15px}}
+
+/* Editorial home: the family's own project takes centre stage. */
+.page-home .project-summary{grid-template-columns:minmax(0,1.45fr) minmax(240px,1fr);border:0;border-radius:20px;isolation:isolate;overflow:hidden;background:#3B0F3F;color:#fff}
+.page-home .project-summary .project-hero-body{padding:32px 36px;display:flex;flex-direction:column;align-items:stretch;gap:0}
+.summary-top{padding-bottom:20px;border-bottom:1px solid #ffffff26}
+.summary-status{color:#f1dfef;font-size:13px;font-weight:500}
+.summary-progress-label{color:#dfcce0;font-size:13px}.summary-progress-label strong{color:#fff;font-size:22px}
+.summary-title-block{padding:26px 0 22px}
+.summary-kicker{font-size:12px;letter-spacing:.12em;color:#d8b7cf}
+.page-home .project-summary h2{color:#fff;font-size:32px;line-height:1.45;letter-spacing:-.04em;margin:8px 0 12px;max-width:24ch}
+.page-home .project-summary .summary-description{font-size:16px;line-height:1.7;color:#e6d7e4;margin:0;max-width:48ch}
+.page-home .project-summary .summary-schedule p{color:#fff;font-size:14px}.summary-schedule span{color:#d8c3d6;font-size:13px}
+.summary-progress{height:7px;margin:20px 0 24px;background:#ffffff26}.summary-progress>span{background:#c5a0e1}
+.summary-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:auto}
+.summary-actions .btn{min-height:44px;font-size:13px;box-shadow:none;border-radius:9px;padding:11px 15px}
+.summary-actions .summary-record{background:#f5eee8;color:#3B0F3F;border-color:#f5eee8;font-weight:600}
+.summary-actions .summary-record:hover{background:#fff;border-color:#fff;transform:translateY(-1px)}
+.summary-actions .summary-plan{background:transparent;color:#f5eee8;border-color:#ffffff40}.summary-actions .summary-plan:hover{background:#ffffff10;border-color:#ffffff80}
+.page-home .project-summary .project-photo{position:relative;border:0;min-height:300px;max-height:none;background:#efe9e1;overflow:hidden}
+.page-home .project-summary .project-photo>img{display:block;position:absolute;inset:0;max-height:none;width:100%;height:100%;min-height:0;object-fit:cover;object-position:center}
+.summary-photo-edit{position:absolute;right:16px;bottom:16px;display:flex;align-items:center;gap:6px;border:1px solid #fff9;border-radius:8px;background:#fffc;color:#3B0F3F;font-size:12px;font-weight:500;padding:10px 12px;cursor:pointer;backdrop-filter:blur(8px)}
+.summary-photo-empty{position:relative;min-height:300px;background:#efe9e1;color:#6d5e69;padding:30px;gap:16px;transition:background .2s}
+.summary-photo-empty::before{content:'';position:absolute;inset:22px;border:1px solid #3b0f3f24;border-radius:140px 140px 6px 6px;pointer-events:none}
+.summary-photo-empty>svg{width:64px;height:64px;stroke-width:1;color:#8b7188;margin-bottom:8px}
+.summary-photo-empty strong{font-size:15px;color:#594253;max-width:20ch;position:relative}.summary-photo-empty span{color:#65406f;font-size:13px;position:relative}
+.summary-photo-empty:hover{background:#e8e0d8}
+.summary-journey{grid-column:1/-1;min-width:0;padding:22px 30px;background:#fff;border:1px solid #ECE7EF;border-top:0;border-radius:0 0 20px 20px}
+.summary-journey-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.summary-journey-heading h3{font-size:14px;font-weight:600;color:#3B0F3F;margin:0}.summary-journey-heading .btn{font-size:12px;color:#73536f}
+.summary-stages{gap:8px}.summary-stage{border-radius:6px;padding:9px 11px;font-size:13px;background:#f4f2f5}.summary-stage.current{background:#3B0F3F;border-color:#7E4FA7;box-shadow:none}.summary-stage.done{background:#f0e8f6}
+.page-home .project-summary .summary-note{font-size:12px;color:#756a78;margin:16px 0 0}
+.page-home .stats-grid{gap:12px}.page-home .stat{border:1px solid #ECE7EF;box-shadow:none;padding:22px;border-radius:14px}.page-home .stat>span{font-size:13px}.page-home .stat>strong{font-size:26px;letter-spacing:-.035em;font-weight:600}.page-home .stat>small{font-size:12px;color:#756a78}
+.page-home .dashboard-grid>.card{box-shadow:none;border:1px solid #ECE7EF;border-radius:16px}.page-home .pane-heading h2{font-size:18px;letter-spacing:-.025em}
+@media(min-width:1100px){.page-home .project-summary .project-photo{min-height:360px}}
+@media(max-width:900px){.page-home .project-summary{grid-template-columns:minmax(0,1fr) 32%}.page-home .project-summary .project-hero-body{padding:26px}.page-home .project-summary .project-photo{height:auto;min-height:280px}.page-home .project-summary .project-photo>img{height:100%}.summary-photo-empty{padding:20px;min-height:280px}.summary-photo-empty::before{inset:12px}.summary-photo-empty>svg{width:44px;height:44px}.summary-photo-empty strong{font-size:14px}.summary-photo-empty span{font-size:12px;flex-wrap:wrap;justify-content:center}.summary-journey{padding:22px 26px}}
+@media(max-width:600px){.page-home .project-summary{grid-template-columns:minmax(0,1fr);border-radius:16px}.page-home .project-summary .project-hero-body{padding:24px}.summary-top{padding-bottom:16px}.summary-title-block{padding:23px 0 18px}.page-home .project-summary h2{font-size:30px;margin-top:7px;max-width:none}.summary-actions .btn{flex:1;justify-content:center;padding:11px 10px;white-space:normal}.page-home .project-summary .project-photo{height:120px;min-height:0}.page-home .project-summary.has-cover .project-photo{height:190px}.summary-photo-empty{min-height:0;padding:20px 24px;height:120px;gap:8px;align-items:flex-start;text-align:left}.summary-photo-empty::before{inset:14px;border-radius:6px}.summary-photo-empty>svg{position:absolute;right:28px;top:37px;width:44px;height:44px;margin:0;opacity:.5}.summary-photo-empty strong{font-size:14px;max-width:calc(100% - 58px)}.summary-photo-empty span{justify-content:flex-start;font-size:12px;max-width:calc(100% - 48px)}.summary-journey{padding:20px;border-radius:0 0 16px 16px}.summary-journey-heading{margin-bottom:14px}.summary-stage{font-size:12px;padding:9px}.page-home .stat{padding:18px}.page-home .stat>strong{font-size:24px}}
+@media(max-width:360px){.page-home .project-summary .project-hero-body{padding:20px 18px}.page-home .project-summary h2{font-size:28px}.summary-top{gap:8px}.summary-progress-label{gap:6px;font-size:12px}.summary-progress-label strong{font-size:20px}.summary-status{font-size:12px}.summary-actions{gap:8px}.summary-actions .btn{font-size:12px}.summary-journey{padding:18px}.summary-stage{gap:5px}.summary-stage small{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.summary-photo-empty,.summary-actions .btn{transition:none}.summary-actions .summary-record:hover{transform:none}}
