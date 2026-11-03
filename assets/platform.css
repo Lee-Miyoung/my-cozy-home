@@ -124,3 +124,30 @@
  .page-home .project-hero .project-photo{max-height:175px;overflow:hidden}
  .page-home .project-hero .project-photo img{max-height:175px;object-fit:cover}
 }
+
+/* Home summary: real project data, compact photography and readable stage states. */
+.page-home .project-summary{display:grid;grid-template-columns:minmax(0,1fr) 250px;background:#fff;border:1px solid #ECE7EF;box-shadow:none;color:#2C2A30}
+.page-home .project-summary .project-hero-body{display:block;min-width:0;padding:28px}
+.summary-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.summary-status{font-size:14px;font-weight:600;color:#3B0F3F;overflow-wrap:anywhere}
+.summary-progress-label{display:flex;align-items:baseline;gap:12px;margin-left:auto;font-size:13px;color:#6b6373}
+.summary-progress-label strong{font-size:22px;font-weight:600;color:#3B0F3F;font-variant-numeric:tabular-nums}
+.page-home .project-summary h2{margin:20px 0 9px;font-size:30px;line-height:1.35;font-weight:600;overflow-wrap:anywhere}
+.page-home .project-summary .summary-description{font-size:16px;line-height:1.7;color:#6b6373;margin:0 0 18px;overflow-wrap:anywhere;white-space:pre-wrap}
+.page-home .project-summary .summary-schedule p{font-size:14px;line-height:1.7;color:#2C2A30;margin:0}
+.summary-schedule span{display:block;font-size:13px;line-height:1.7;color:#6b6373;margin-top:4px;overflow-wrap:anywhere}
+.summary-progress{height:7px;overflow:hidden;border-radius:8px;background:#ECE7EF;margin:20px 0}
+.summary-progress>span{display:block;height:100%;background:#7E4FA7;border-radius:inherit}
+.summary-stages{display:flex;flex-wrap:wrap;gap:8px}
+.summary-stage{display:inline-flex;align-items:center;gap:6px;max-width:100%;border:1px solid transparent;border-radius:7px;background:#f3f1f5;color:#6b6373;padding:8px 10px;font-size:13px;text-align:left;line-height:1.45;cursor:pointer}
+.summary-stage span{min-width:0;overflow-wrap:anywhere}.summary-stage small{font-size:12px;white-space:nowrap}
+.summary-stage.done{background:#f1eaf6;color:#60357d}.summary-stage.current{background:#3B0F3F;color:#fff;border-color:#7E4FA7;box-shadow:0 0 0 1px #7E4FA7}
+.summary-stage svg{flex-shrink:0}.summary-stage:hover{border-color:#7E4FA7}.summary-stage:focus-visible,.summary-photo-empty:focus-visible{outline:3px solid #7E4FA7;outline-offset:3px}
+.page-home .project-summary .summary-note{font-size:12px;line-height:1.65;color:#6b6373;margin:15px 0 0}
+.page-home .project-summary .project-photo{height:auto;max-height:none;min-height:200px;background:#FAF8FB;border-left:1px solid #ECE7EF;overflow:hidden}
+.page-home .project-summary .project-photo>img{height:100%;max-height:none;min-height:200px;object-fit:cover}
+.summary-photo-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%;height:100%;min-height:200px;padding:24px;border:0;background:#FAF8FB;color:#6b6373;cursor:pointer;text-align:center}
+.summary-photo-empty strong{font-size:15px;line-height:1.6;font-weight:500}.summary-photo-empty span{display:flex;align-items:center;gap:5px;font-size:13px;color:#60357d}
+.family-glance-heading h2{overflow-wrap:anywhere}
+@media(max-width:900px){.page-home .project-summary{grid-template-columns:minmax(0,1fr)}.page-home .project-summary .project-photo{height:150px;min-height:0;border-left:0;border-top:1px solid #ECE7EF}.page-home .project-summary .project-photo>img{height:150px;min-height:0}.summary-photo-empty{min-height:0;padding:18px;gap:8px}.page-home .project-summary .project-hero-body{padding:22px}.page-home .project-summary h2{font-size:28px}}
+@media(max-width:400px){.page-home .project-summary .project-hero-body{padding:18px 16px}.page-home .project-summary h2{font-size:26px}.summary-progress-label{gap:8px}.summary-progress-label strong{font-size:20px}.summary-status{font-size:13px}.summary-stage{font-size:12px;padding:8px}.page-home .project-summary .summary-description{font-size:15px}}

@@ -86,15 +86,15 @@ with sync_playwright() as p:
     page=context.new_page();page.set_default_timeout(12000);errors=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.on('dialog',lambda d:d.accept())
-    page.goto(URL);page.locator('.platform-hero h1').wait_for()
+    page.goto(URL);page.locator('.family-onboarding h2').wait_for()
     assert get(page,'workspace')['ids']==[]
     assert get(page) is None
-    print('PASS: clean install has a public landing page and no invented project data')
+    print('PASS: clean install has the current family setup screen and no invented project data')
     legacy=legacy_fixture();fixture=OUT/'legacy.json';fixture.write_text(json.dumps(legacy,ensure_ascii=False))
     page.evaluate('''async(data)=>{const db=await new Promise(ok=>{const r=indexedDB.open('house_time_private_v1',1);r.onsuccess=()=>ok(r.result)});await new Promise((ok,bad)=>{const t=db.transaction(['meta','attachments'],'readwrite');t.objectStore('meta').clear();t.objectStore('meta').put(data.state,'state');t.objectStore('attachments').clear();for(const f of data.files){const raw=atob(f.data.split(',')[1]);const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));t.objectStore('attachments').put({...f,blob:new Blob([bytes],{type:f.type})},f.id)}t.oncomplete=ok;t.onerror=()=>bad(t.error)});db.close()}''',legacy)
     page.reload();page.get_by_role('heading',name='기존 프로젝트',exact=True).wait_for()
     assert get(page)==legacy['state'];assert get(page,'legacy-original-v1')==legacy['state']
-    assert page.locator('.progress-ring strong').inner_text()=='50%'
+    assert page.locator('.summary-progress').get_attribute('aria-valuenow')=='50'
     first_id=get(page,'workspace')['activeId']
     print('PASS: legacy single-project data and an immutable original snapshot survive migration')
     nav(page,'stages');assert page.get_by_role('heading',name='입주·생활',exact=True).is_visible()
