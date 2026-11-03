@@ -350,3 +350,19 @@
  .gallery-strip{min-height:55px}
 }
 @media(max-width:370px){.gallery-actions span{font-size:10px}.gallery-actions .btn{font-size:10px;padding:5px 8px}.gallery-stage{padding:4px 30px}}
+
+/* Clipboard image paste and family ideas shortcuts */
+.image-paste-zone{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px;border:1px dashed #b6a2b9;background:#faf8fb;border-radius:10px;margin:9px 0;min-width:0;cursor:text}
+.image-paste-zone:focus,.image-paste-zone:focus-within{outline:2px solid #806a87;outline-offset:2px}
+.image-paste-icon{display:grid;place-items:center;color:#806a87;background:#ece5ed;padding:10px;border-radius:8px}
+.image-paste-zone>div:not(.image-paste-previews){flex:1;min-width:130px;display:grid;gap:3px}
+.image-paste-zone strong{font-size:13px;color:#49354f}
+.image-paste-count{color:#756c79;font-size:11px;line-height:1.5}
+.image-paste-mobile{flex:1 1 100%;border:1px solid #e2dbe5;border-radius:8px;padding:8px 10px;min-height:39px;height:39px;resize:none;font-size:13px;background:#fff}
+.image-paste-previews{display:flex;gap:7px;flex-wrap:wrap;flex:1 1 100%}
+.image-paste-previews img{height:58px;width:72px;object-fit:cover;border-radius:7px}
+.image-paste-clear{font-size:11px;border:1px solid #dacddd;border-radius:7px;background:#fff;color:#66526e;padding:6px 9px}
+.image-paste-zone.has-images{border-style:solid;background:#f6f1f7}
+.design-family-idea{background:#ece5ed;color:#49354f;border:1px solid #cdbed0;text-decoration:none}
+.design-family-idea:hover{background:#e4d9e7;color:#49354f}
+.more-item.family-ideas-entry{background:#f4edf5;border:1px solid #e1d1e4;border-radius:11px}
