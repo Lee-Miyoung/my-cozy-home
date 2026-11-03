@@ -8,7 +8,7 @@
   "scope": "./",
   "display": "standalone",
   "background_color": "#FAF7F4",
-  "theme_color": "#3B0F3F",
+  "theme_color": "#49354F",
   "icons": [
     {
       "src": "./assets/brand/icon-192.png?v=chaepium-06-2",
