@@ -374,3 +374,34 @@
 .family-ideas-shortcut strong{font-size:14px;color:#49354f}
 .family-ideas-shortcut small{font-size:12px;color:#806a87;line-height:1.5}
 @media(max-width:780px){.family-ideas-shortcut{padding:12px 13px;gap:9px}.family-ideas-shortcut strong{font-size:13px}.family-ideas-shortcut small{font-size:11px}}
+
+
+/* Photo slideshow detail zoom: click, scroll wheel, pinch and drag to inspect */
+.gallery-zoom-tools{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.gallery-zoom-tools button{border:1px solid #FFFFFF40;border-radius:8px;background:#FFFFFF18;color:#fff;min-width:33px;height:33px;padding:0 8px;font-size:20px;font-weight:600}
+.gallery-zoom-tools button:last-child{font-size:11px;font-weight:650;min-width:42px}
+.gallery-zoom-tools button:hover:not(:disabled){background:#806A87}
+.gallery-zoom-tools button:disabled{opacity:.35;cursor:default}
+.gallery-zoom-tools #galleryZoomValue{min-width:47px;color:#F3ECF5;font-size:12px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.gallery-stage{touch-action:none}
+.gallery-stage>img#galleryImage{cursor:zoom-in;transform-origin:center center;transition:transform .12s ease-out;will-change:transform}
+.gallery-stage>img#galleryImage.zoomed{cursor:grab}
+.gallery-stage>img#galleryImage.zoomed:active{cursor:grabbing;transition:none}
+.gallery-stage.is-zoomed .gallery-arrow{opacity:.7}
+@media(max-width:780px){
+ .gallery-top{gap:8px}
+ .gallery-heading{min-width:0}
+ .gallery-zoom-tools{gap:3px}
+ .gallery-zoom-tools button{min-width:29px;width:29px;height:30px;padding:0;font-size:17px}
+ .gallery-zoom-tools button:last-child{min-width:33px;width:33px;font-size:10px}
+ .gallery-zoom-tools #galleryZoomValue{min-width:39px;font-size:11px}
+ .gallery-counter{font-size:12px}
+ .gallery-close{width:32px;height:32px;font-size:23px;flex:0 0 32px}
+}
+@media(max-width:390px){
+ .gallery-heading>span{display:none}
+ .gallery-heading h2{font-size:12px}
+ .gallery-zoom-tools #galleryZoomValue{min-width:34px;font-size:10px}
+ .gallery-zoom-tools button{width:25px;min-width:25px}
+}
+@media(prefers-reduced-motion:reduce){.gallery-stage>img#galleryImage{transition:none}}
