@@ -186,8 +186,85 @@ function familyAtGlance(){
  ${list.length?list.map(t=>`<div class="family-upcoming-row"><span class="${t.due<today?'is-late':''}">${dateLabel(t.due)}</span><strong>${esc(t.title)}</strong><small>${esc(stageName(t.stage))}</small></div>`).join(''):'<p class="family-upcoming-empty">날짜가 정해진 일정이 없어요. 첫 일정을 등록하면 여기부터 표시돼요.</p>'}
  </div></section>`;
 }
-function home(){if(!catalog.activeId)return projectsPage();const o=overall(),t=totals();const tracked=visibleStages().filter(s=>progress(s.id).total||s.status);const current=tracked.find(s=>progress(s.id).pct<100)||tracked.at(-1)||visibleStages()[0];const now=new Date(),today=localDate(now),weekday=(now.getDay()+6)%7,weekStart=localDate(new Date(now.getFullYear(),now.getMonth(),now.getDate()-weekday)),week=localDate(new Date(now.getFullYear(),now.getMonth(),now.getDate()+6-weekday));const visibleIds=new Set(visibleStages().map(s=>s.id));const pending=state.tasks.filter(t=>t.status!=='done'&&visibleIds.has(t.stage)).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));const next=pending.find(t=>t.due&&t.due>=today);const weekly=pending.filter(t=>t.due&&t.due>=weekStart&&t.due<=week);const overdue=pending.filter(t=>t.due&&t.due<today);const decisions=state.journals.filter(j=>j.type==='결정기록'||j.decision).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);const journals=[...state.journals].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+function home(){if(!catalog.activeId)return projectsPage();if(catalog.activeId==='family-moms-garden')return familyRecordHome();const o=overall(),t=totals();const tracked=visibleStages().filter(s=>progress(s.id).total||s.status);const current=tracked.find(s=>progress(s.id).pct<100)||tracked.at(-1)||visibleStages()[0];const now=new Date(),today=localDate(now),weekday=(now.getDay()+6)%7,weekStart=localDate(new Date(now.getFullYear(),now.getMonth(),now.getDate()-weekday)),week=localDate(new Date(now.getFullYear(),now.getMonth(),now.getDate()+6-weekday));const visibleIds=new Set(visibleStages().map(s=>s.id));const pending=state.tasks.filter(t=>t.status!=='done'&&visibleIds.has(t.stage)).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));const next=pending.find(t=>t.due&&t.due>=today);const weekly=pending.filter(t=>t.due&&t.due>=weekStart&&t.due<=week);const overdue=pending.filter(t=>t.due&&t.due<today);const decisions=state.journals.filter(j=>j.type==='결정기록'||j.decision).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);const journals=[...state.journals].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
 return `${heading('나의 집 대시보드','집을 짓는 여정의 오늘을 확인하세요.',`<button class="btn" data-nav="projects">${icon('home',16)} 프로젝트</button><button class="btn" data-open="project">${icon('edit',16)} 정보 수정</button>`)}${beforeAfterBanner()}${familyIdeasShortcut()}${catalog.activeId==='family-moms-garden'?familyAtGlance():''}${projectSummary()}${shortcuts()}<div class="stats-grid"><div class="card stat"><span>총예산</span><strong>${state.project.budgetGoal?compactMoney(state.project.budgetGoal):'미설정'}</strong><small>프로젝트 목표 총예산</small></div><div class="card stat"><span>예상 견적</span><strong>${compactMoney(t.estimate)}</strong><small>예상금액 합계</small></div><div class="card stat"><span>계약금액</span><strong>${compactMoney(t.contract)}</strong><small>현금 지출과 별도</small></div><div class="card stat"><span>실제 지출</span><strong>${compactMoney(t.paid)}</strong><small>실제 지급액 합계</small></div></div><div class="dashboard-grid"><section class="card pane"><div class="pane-heading"><h2>다가오는 일정</h2>${navButton('stages','전체 보기','btn ghost sm')}</div>${next?`<div class="next-task"><span>${dateLabel(next.due)}</span><h3>${esc(next.title)}</h3><p>${esc(stageName(next.stage))}</p></div>`:empty('우리 집의 공사 계획을 시작해 보세요.','준비부터 완공까지 필요한 단계를 차근차근 정리할 수 있어요.','<button class="btn" data-open="task">일정 등록하기</button>')}<h3 class="subheading">이번 주 할 일 <span>${weekly.length}</span></h3>${weekly.slice(0,4).map(taskRow).join('')||'<p class="muted small">이번 주에 예정된 할 일이 없습니다.</p>'}${overdue.length?`<div class="banner warning"><strong>기한이 지난 할 일 ${overdue.length}개</strong><p>일정 화면에서 진행 상황과 기한을 확인해 주세요.</p></div>`:''}</section><section class="card pane"><div class="pane-heading"><h2>최근 사진일기</h2><button class="btn sm" data-open="journal">${icon('plus',14)} 기록</button></div>${journals.map(j=>`<button class="recent-journal" data-nav="journal">${j.photos?.[0]?`<img data-blob="${esc(j.photos[0].id)}" alt="${esc(j.title)}">`:`<span>${icon('book',22)}</span>`}<div><small>${dateLabel(j.date)}</small><h3>${esc(j.title)}</h3><p>${esc(j.decision||j.body||'')}</p></div>${icon('arrow',16)}</button>`).join('')||empty('우리 집의 첫 순간을 남겨보세요.','현장 사진을 등록하면 집이 완성되어 가는 과정을 날짜별로 확인할 수 있어요.','<button class="btn" data-open="journal">사진 등록하기</button>')}<h3 class="subheading">최근 결정사항</h3>${decisions.map(j=>`<div class="decision-row"><span>${dateLabel(j.date)}</span><p>${esc(j.decision||j.title)}</p></div>`).join('')||'<p class="muted small">사진일기에 오늘의 결정을 남기면 모아 보여드려요.</p>'}</section></div>`;}
+
+
+function activityContent(j){return [j.body,j.siteNotes,j.decision,j.memo].filter(Boolean).join(' · ');}
+function familyRecordHome(){
+ const today=localDate();
+ const open=state.tasks.filter(t=>!t.archivedRecord&&t.status!=='done');
+ const upcoming=open.filter(t=>t.due).sort((a,b)=>a.due.localeCompare(b.due));
+ const undated=open.filter(t=>!t.due);
+ const todayRecords=state.journals.filter(j=>j.date===today).length;
+ const datedJournal=state.journals.map(j=>({kind:'journal',row:j,date:j.date||j.created?.slice(0,10)||'',sort:j.created||''}));
+ const taskMemos=state.tasks.filter(t=>t.memo?.trim()&&!t.archivedRecord).map(t=>({kind:'task-memo',row:t,date:t.created?.slice(0,10)||t.due||'',sort:t.created||''}));
+ const records=[...datedJournal,...taskMemos].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sort||'').localeCompare(a.sort||''));
+ const activities=records.slice(0,12);
+ return `${heading('엄마의 뜰 · 오늘의 기록','통화한 내용, 현장 메모, 사진과 앞으로의 일정을 한 화면에서 확인해요.',`<button class="btn" data-open="task">${icon('plus',15)} 일정 추가</button><button class="btn primary" data-open="journal" data-record-type="call">${icon('plus',15)} 통화·활동 기록</button>`)}
+ <div class="record-overview" aria-label="현장 기록 현황"><div><span>진행 중인 일정</span><strong>${open.length}<small>건</small></strong></div><div><span>오늘 작성한 기록</span><strong>${todayRecords}<small>건</small></strong></div><div><span>저장된 활동 기록</span><strong>${state.journals.length}<small>건</small></strong></div></div>
+ <div class="record-hub-grid">
+ <section class="card record-hub-panel"><div class="record-panel-head"><div><span class="eyebrow">SITE DIARY</span><h2>통화·현장 활동 기록</h2><p>할 일에 입력했던 메모도 여기에서 찾을 수 있어요.</p></div><button class="btn sm" data-open="journal" data-record-type="call">${icon('plus',14)} 기록</button></div>
+ <div class="record-feed">${activities.length?activities.map(item=>{
+  const j=item.row,isMemo=item.kind==='task-memo';
+  const content=isMemo?j.memo:activityContent(j);
+  const label=isMemo?'할 일에 남긴 메모':j.type||'현장일기';
+  const action=isMemo?'view-task':'view-record';
+  const photos=isMemo?[]:j.photos||[];
+  return `<button type="button" class="record-feed-item" data-action="${action}" data-id="${esc(j.id)}"><span class="record-feed-date">${dateLabel(item.date)} · ${esc(label)}</span><strong>${esc(j.title)}</strong><span class="record-feed-preview">${esc(content||'상세 기록과 사진을 확인하세요.')}</span>${photos.length?`<span class="record-photo-indicator">${icon('camera',13)} 사진 ${photos.length}장</span>`:''}${isMemo?'<span class="record-memo-notice">기존 메모 보존됨 · 상세보기에서 통화 기록으로 정리 가능</span>':''}<span class="record-feed-detail">상세보기 ${icon('arrow',13)}</span></button>`;
+ }).join(''):`<div class="record-empty">아직 활동 기록이 없어요. 오늘 통화한 내용부터 기록해 보세요.</div>`}</div>
+ ${records.length>12?`<button class="btn ghost record-show-all" data-nav="journal">전체 사진·활동 기록 보기 (${records.length}건)</button>`:''}
+ </section>
+ <section class="card record-hub-panel"><div class="record-panel-head"><div><span class="eyebrow">NEXT STEPS</span><h2>다가오는 일정</h2><p>앞으로 해야 하는 일만 표시해요.</p></div><button class="btn sm" data-open="task">${icon('plus',14)} 추가</button></div>
+ <div class="record-upcoming">${upcoming.length?upcoming.slice(0,8).map(t=>`<button type="button" class="record-upcoming-item" data-action="view-task" data-id="${esc(t.id)}"><span class="record-upcoming-date ${t.due<today?'is-late':''}">${dateLabel(t.due)}${t.due<today?' · 기한 지남':''}</span><strong>${esc(t.title)}</strong>${t.memo?`<span class="record-upcoming-note">${esc(t.memo)}</span>`:''}<span class="record-upcoming-meta">${esc(stageName(t.stage))} · 상세보기</span></button>`).join(''):`<div class="record-empty">등록된 예정 일정이 없어요.</div>`}
+ ${undated.length?`<details class="record-undated"><summary>날짜 미정인 할 일 ${undated.length}건</summary>${undated.slice(0,15).map(t=>`<button data-action="view-task" data-id="${esc(t.id)}">${esc(t.title)} ${icon('arrow',13)}</button>`).join('')}</details>`:''}
+ </div><button type="button" class="btn ghost record-show-all" data-nav="stages">단계별 일정·전체 할 일 보기</button>
+ </section></div>
+ <div class="record-hub-secondary">${beforeAfterBanner()}${familyIdeasShortcut()}</div>`;
+}
+function detailLine(label,value){
+ return value?`<div class="record-detail-line"><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`:'';
+}
+function openItemDetail(kind,key){
+ if(busy)return;
+ const isTask=kind==='task';
+ const record=isTask?state.tasks.find(t=>t.id===key):state.journals.find(j=>j.id===key);
+ if(!record)return toast('기록을 찾을 수 없습니다.');
+ const linked=isTask?taskLogs(key):[];
+ const photos=isTask?[]:(record.photos||[]);
+ const fromMemo=isTask&&!!record.memo?.trim()&&!record.archivedRecord;
+ const type=isTask?'예정된 할 일':record.type||'활동 기록';
+ const date=isTask?record.due:record.date;
+ const htmlPhotos=(p,r)=>p?.length?`<div class="record-detail-photos">${p.map(f=>`<button class="photo-thumb" data-action="preview-file" data-id="${esc(f.id)}" aria-label="${esc(f.name)} 사진 확대"><img data-blob="${esc(f.id)}" alt="${esc(r.title)} 사진" loading="lazy"></button>`).join('')}</div>`:'';
+ lastFocus=document.activeElement;
+ $('#modalRoot').innerHTML=`<div class="modal record-detail-modal" role="dialog" aria-modal="true" aria-labelledby="recordDetailTitle"><div class="modal-header"><div><span class="eyebrow">CHAEPIUM · RECORD DETAIL</span><h2 id="recordDetailTitle">${esc(record.title)}</h2></div><button class="icon-btn" data-action="close-modal" aria-label="닫기">${icon('close',22)}</button></div>
+ <div class="modal-body record-detail-body"><span class="chip">${esc(type)}</span><dl class="record-detail-meta">${detailLine(isTask?'예정일':'기록일',date?dateLabel(date):'날짜 미정')}${detailLine('공사 단계',stageName(record.stage))}${isTask?detailLine('진행 상태',({todo:'진행 전',doing:'진행 중',done:'완료'})[record.status]||'')+detailLine('담당자',record.owner):detailLine('연결된 할 일',state.tasks.find(t=>t.id===record.taskId)?.title)}</dl>
+ ${isTask?`<section class="record-detail-section"><h3>기존에 입력한 메모</h3><p class="record-detail-text">${esc(record.memo||'등록된 메모 없음')}</p></section>`:`
+ ${record.body?`<section class="record-detail-section"><h3>진행 내용·통화 내용</h3><p class="record-detail-text">${esc(record.body)}</p></section>`:''}
+ ${record.siteNotes?`<section class="record-detail-section"><h3>현장 특이사항</h3><p class="record-detail-text">${esc(record.siteNotes)}</p></section>`:''}
+ ${record.decision?`<section class="record-detail-section"><h3>결정사항</h3><p class="record-detail-text">${esc(record.decision)}</p></section>`:''}
+ ${record.memo?`<section class="record-detail-section"><h3>메모</h3><p class="record-detail-text">${esc(record.memo)}</p></section>`:''}
+ ${htmlPhotos(photos,record)}`}
+ ${isTask&&linked.length?`<section class="record-detail-section"><h3>이 일정과 연결된 기록 ${linked.length}건</h3>${linked.map(j=>`<div class="record-detail-linked"><span>${dateLabel(j.date)} · ${esc(j.type||'활동 기록')}</span><p>${esc(activityContent(j)||j.title)}</p><button class="btn sm" data-action="view-record" data-id="${esc(j.id)}">기록 상세보기</button></div>`).join('')}</section>`:''}
+ ${fromMemo?`<div class="record-detail-hint"><strong>이것이 오늘 통화한 내용인가요?</strong><p>메모를 활동 기록으로 복사하고, 이 항목을 예정 할 일 목록에서 제외할 수 있어요. 원래 메모는 보존됩니다.</p><button class="btn" data-action="classify-task-record" data-id="${esc(record.id)}">통화·활동 기록으로 정리</button></div>`:''}
+ <div class="record-detail-buttons"><button class="btn" data-action="close-modal">닫기</button><button class="btn primary" data-open="${isTask?'task':'journal'}" data-id="${esc(record.id)}">${icon('edit',14)} 수정하기</button>${isTask?`<button class="btn" data-open="journal" data-task="${esc(record.id)}">${icon('plus',14)} 관련 기록 추가</button>`:''}</div></div></div>`;
+ $('#modalRoot').classList.remove('hidden');document.body.style.overflow='hidden';loadImgs();
+ $('#modalRoot').querySelector('[aria-label="닫기"]')?.focus({preventScroll:true});
+}
+async function classifyTaskAsRecord(key){
+ const row=state.tasks.find(t=>t.id===key);
+ if(!row||row.archivedRecord)return;
+ if(!row.memo?.trim())throw Error('옮길 메모가 없습니다. 상세보기에서 메모를 확인해 주세요.');
+ if(!confirm('이 할 일의 메모를 통화·활동 기록으로 복사하고 예정 할 일 목록에서 제외할까요? 기존 할 일과 메모는 삭제하지 않습니다.'))return;
+ const draft=clone(state),t=draft.tasks.find(x=>x.id===key);
+ if(!t||t.archivedRecord)return;
+ t.archivedRecord=true;
+ const entry={id:id(),title:t.title,date:(/^\d{4}-\d{2}-\d{2}/.exec(t.created||'')||[])[0]||t.due||localDate(),type:'통화·문의',stage:t.stage,body:t.memo,siteNotes:'',decision:'',memo:'',taskId:t.id,created:timestamp(),photos:[]};
+ draft.journals.push(entry);
+ await persist(draft);
+ await refreshProjectSummaries();
+ closeModal(true);render();toast('통화 내용을 활동 기록으로 정리했어요. 원본 메모도 남아 있어요.');
+}
 
 function taskLogs(taskId){return state.journals.filter(j=>j.taskId===taskId).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.created||'').localeCompare(a.created||''));}
 function journalDraftForTask(taskId){
