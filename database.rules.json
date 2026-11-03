@@ -38,6 +38,46 @@
           ".write": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor') && ((!data.exists() && newData.child('authorUid').val() === auth.uid) || (data.exists() && (data.child('authorUid').val() === auth.uid || root.child('familyAccess').child(auth.uid).val() === 'owner') && !newData.exists()))",
           ".validate": "newData.hasChildren(['authorUid','name','mime','payload','createdAt']) && newData.child('authorUid').isString() && newData.child('name').isString() && newData.child('name').val().length <= 180 && newData.child('mime').isString() && (newData.child('mime').val() === 'image/jpeg' || newData.child('mime').val() === 'application/pdf' || newData.child('mime').val() === 'text/plain') && newData.child('payload').isString() && newData.child('payload').val().length <= (newData.child('mime').val() === 'image/jpeg' ? 180000 : 6000000) && newData.child('createdAt').isNumber()"
         }
+      },
+      "ideas": {
+        ".read": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor')",
+        ".indexOn": [
+          "createdAt"
+        ],
+        "$ideaId": {
+          ".write": "auth != null && (root.child('familyAccess').child(auth.uid).val() === 'owner' || root.child('familyAccess').child(auth.uid).val() === 'contributor') && ((!data.exists() && newData.exists() && newData.child('authorUid').val() === auth.uid) || (data.exists() && (data.child('authorUid').val() === auth.uid || root.child('familyAccess').child(auth.uid).val() === 'owner') && (!newData.exists() || (newData.child('authorUid').val() === data.child('authorUid').val() && newData.child('createdAt').val() === data.child('createdAt').val()))))",
+          ".validate": "newData.hasChildren(['authorUid','authorName','category','title','note','linksJson','photosJson','createdAt','updatedAt'])",
+          "authorUid": {
+            ".validate": "newData.isString() && newData.val().length <= 128"
+          },
+          "authorName": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "category": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "title": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+          },
+          "note": {
+            ".validate": "newData.isString() && newData.val().length <= 1200"
+          },
+          "linksJson": {
+            ".validate": "newData.isString() && newData.val().length <= 3000"
+          },
+          "photosJson": {
+            ".validate": "newData.isString() && newData.val().length <= 700000"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && newData.val() > 0"
+          },
+          "updatedAt": {
+            ".validate": "newData.isNumber() && newData.val() > 0"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     }
   }
