@@ -817,3 +817,23 @@
 @media(max-width:620px){.family-dashboard-v4{margin-bottom:25px}.family-v4-titlebar{align-items:flex-start;flex-direction:column;gap:13px;margin-bottom:14px}.family-v4-titlebar h1{font-size:27px}.family-v4-titlebar p{font-size:12px}.family-v4-main-actions{width:100%}.family-v4-main-actions .btn{flex:1;justify-content:center;padding:9px}.family-v4-top{margin-bottom:13px}.family-v4-intro{padding:19px 16px}.family-v4-overline{font-size:16px}.family-v4-description{font-size:12px}.family-v4-summary button{padding:10px 4px}.family-v4-summary strong{font-size:21px}.family-v4-summary span{font-size:10px}.family-v4-featured-next{padding:11px 12px}.family-v4-photo-area{padding:8px;gap:6px;min-height:190px}.family-v4-mainphoto{min-height:178px}.family-v4-photo-strip{gap:6px}.family-v4-photo-choose{padding:6px 8px;font-size:10px}.family-v4-photo-label{font-size:10px;padding:5px 7px}.family-v4-content{gap:12px}.family-v4-side{grid-template-columns:1fr;gap:12px}.family-v4-activities,.family-v4-schedule,.family-v4-documents{padding:17px 15px}.family-v4-section-head h2{font-size:17px}.family-v4-section-head p{font-size:11px}.family-dashboard-v4 .record-entry.record-feed-item{gap:8px;padding:13px 0}.family-dashboard-v4 .record-feed-open strong{font-size:14px}.family-dashboard-v4 .record-feed-preview{font-size:12px}.family-dashboard-v4 .record-feed-thumbs{max-width:108px}.family-dashboard-v4 .record-feed-photo,.family-dashboard-v4 .record-feed-photo:first-child{height:63px;width:34px;flex-basis:34px}.family-dashboard-v4 .record-feed-photo:first-child:last-of-type{width:66px;flex-basis:66px}.family-cover-picks{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}}
 @media(max-width:390px){.family-v4-photo-area{grid-template-columns:minmax(0,1.45fr) minmax(0,.9fr)}.family-v4-quicklinks .btn{flex:1}.family-v4-photo-label{display:none}.family-v4-featured-next>button{flex-wrap:wrap}.family-v4-featured-next>button small{order:3;width:100%}.family-cover-picks{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.family-v4-mainphoto-open img,.family-v4-photo-thumb img{transition:none}}
+
+
+/* Multiple document files: readable attachments and clipboard photo thumbnails */
+.document-existing-files{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px;margin:7px 0 10px}
+.document-existing-file{display:flex;flex-direction:column;gap:6px;min-width:0;padding:8px;border:1px solid #E9E0EB;background:#FCFAFC;border-radius:10px;cursor:pointer}
+.document-existing-file>img,.document-existing-icon{width:100%;height:100px;border-radius:7px;object-fit:cover;background:#EFEAF1;display:grid;place-items:center;color:#806A87}
+.document-existing-filename{font-size:11px;color:#4D4350;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.document-remove-choice{display:flex;align-items:center;gap:7px;font-size:11px;color:#856D85}
+.document-remove-choice input{accent-color:#49354F}
+.document-attachments{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin:12px 0}
+.document-attachment{display:flex;flex-direction:column;min-width:0;gap:8px;border:1px solid #EAE4ED;border-radius:10px;background:#FCFAFC;padding:8px}
+.document-attachment-photo{border:0;padding:0;background:#EEE8EF;border-radius:8px;width:100%;height:112px;display:block;overflow:hidden;cursor:zoom-in}
+.document-attachment-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.document-attachment-icon{height:70px;background:#F0EAF2;display:grid;place-items:center;color:#806A87;border-radius:8px}
+.document-attachment-body{min-width:0;display:grid;gap:8px}
+.document-attachment-body>span{font-size:11px;color:#514654;overflow-wrap:anywhere;line-height:1.4}
+.document-attachment-actions{display:flex;gap:7px;flex-wrap:wrap}
+.document-attachment-actions .btn{min-height:29px;padding:6px 9px;font-size:11px}
+.record-detail-body .document-attachments{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+@media(max-width:650px){.document-attachments{grid-template-columns:repeat(2,minmax(0,1fr))}.document-existing-files{grid-template-columns:repeat(2,minmax(0,1fr))}.document-attachment-photo{height:95px}}
