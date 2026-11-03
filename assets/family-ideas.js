@@ -5,6 +5,7 @@ import{getDatabase,ref,get,onValue,push,set,remove}from"https://www.gstatic.com/
 const app=initializeApp(firebaseConfig,"chaepium-family-ideas"),auth=getAuth(app),db=getDatabase(app);
 const path="familyAlbum/ideas",q=s=>document.querySelector(s),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let user=null,role="",items=[],unsub=null,clipboardFiles=[],originalPhotos=[],saving=false,lightPhotos=[],lightIndex=0,touchX=null;
+let lightZoom={scale:1,x:0,y:0},lightPinch=null,lightTouch=null,lightMousePan=null,lightIgnoreTap=0;
 const allowed=()=>role==="owner"||role==="contributor";
 function notice(message,error=false){q("#status").textContent=message;q("#status").classList.toggle("error",error)}
 function links(value){
@@ -63,8 +64,23 @@ async function save(event){
  await set(editId?ref(db,path+"/"+editId):push(ref(db,path)),entry);reset();notice("삼남매 아이디어 보드에 저장했어요.");
  }catch(err){notice("저장 실패: "+err.message,true)}finally{saving=false;q("#saveIdea").disabled=false;}
 }
-function lightbox(index){if(!lightPhotos.length)return;lightIndex=(index+lightPhotos.length)%lightPhotos.length;q("#lightboxImage").src=lightPhotos[lightIndex];q("#lightboxCounter").textContent=(lightIndex+1)+" / "+lightPhotos.length;q("#ideaLightbox").hidden=false;document.body.style.overflow="hidden";}
+
+function applyLightZoom(){
+ const img=q("#lightboxImage");if(!img)return;
+ lightZoom.scale=Math.max(1,Math.min(5,lightZoom.scale));
+ if(lightZoom.scale===1){lightZoom.x=0;lightZoom.y=0}
+ else{const x=img.clientWidth*(lightZoom.scale-1)/2,y=img.clientHeight*(lightZoom.scale-1)/2;
+  lightZoom.x=Math.max(-x,Math.min(x,lightZoom.x));lightZoom.y=Math.max(-y,Math.min(y,lightZoom.y));}
+ img.style.transform=`translate3d(${lightZoom.x}px,${lightZoom.y}px,0) scale(${lightZoom.scale})`;
+ img.classList.toggle("zoomed",lightZoom.scale>1);
+ q("#lightZoomPct").textContent=Math.round(lightZoom.scale*100)+"%";
+ q("#lightZoomOut").disabled=lightZoom.scale<=1;
+ q("#lightZoomIn").disabled=lightZoom.scale>=5;
+}
+function setLightZoom(scale,x=0,y=0){lightZoom={scale,x,y};applyLightZoom();}
+function lightbox(index){if(!lightPhotos.length)return;lightIndex=(index+lightPhotos.length)%lightPhotos.length;setLightZoom(1);q("#lightboxImage").src=lightPhotos[lightIndex];q("#lightboxCounter").textContent=(lightIndex+1)+" / "+lightPhotos.length;q("#ideaLightbox").hidden=false;document.body.style.overflow="hidden";}
 function closeLight(){q("#ideaLightbox").hidden=true;document.body.style.overflow="";}
+
 function cardAction(e){
  const b=e.target.closest("button[data-act]");if(!b)return;const id=b.dataset.id,act=b.dataset.act,item=items.find(x=>x.id===id);if(!item)return;
  if(act==="photo"){lightPhotos=photosOf(item);return lightbox(Number(b.dataset.index));}
@@ -79,8 +95,31 @@ function initialize(){
  const zone=q("#ideaPaste");document.addEventListener("paste",e=>{if(!e.target.closest?.("#ideaPaste"))return;const pics=[...(e.clipboardData?.items||[])].filter(x=>x.kind==="file"&&x.type.startsWith("image/")).map(x=>x.getAsFile()).filter(Boolean);if(pics.length){e.preventDefault();addPaste(pics);}});
  zone.addEventListener("drop",e=>{e.preventDefault();addPaste([...(e.dataTransfer?.files||[])]);});zone.addEventListener("dragover",e=>e.preventDefault());
  q("#lightboxClose").onclick=closeLight;q("#lightboxPrev").onclick=()=>lightbox(lightIndex-1);q("#lightboxNext").onclick=()=>lightbox(lightIndex+1);
- q("#ideaLightbox").addEventListener("touchstart",e=>{if(e.touches.length===1)touchX=e.touches[0].clientX;},{passive:true});
- q("#ideaLightbox").addEventListener("touchend",e=>{if(touchX===null)return;const dx=e.changedTouches[0].clientX-touchX;touchX=null;if(Math.abs(dx)>50)lightbox(lightIndex+(dx<0?1:-1));},{passive:true});
+
+ q("#lightZoomIn").onclick=()=>setLightZoom(lightZoom.scale+.5,lightZoom.x,lightZoom.y);
+ q("#lightZoomOut").onclick=()=>setLightZoom(lightZoom.scale-.5,lightZoom.x,lightZoom.y);
+ q("#lightZoomReset").onclick=()=>setLightZoom(1);
+ q("#lightboxImage").onclick=()=>{if(Date.now()<lightIgnoreTap)return;setLightZoom(lightZoom.scale>1?1:2.5);};
+ q("#ideaLightbox").addEventListener("wheel",e=>{if(e.target.closest?.("#ideaLightbox")){e.preventDefault();setLightZoom(lightZoom.scale+(e.deltaY<0?.5:-.5),lightZoom.x,lightZoom.y)}},{passive:false});
+ q("#lightboxImage").addEventListener("pointerdown",e=>{if(e.pointerType!=="mouse"||lightZoom.scale<=1)return;lightMousePan={id:e.pointerId,x:e.clientX,y:e.clientY,left:lightZoom.x,top:lightZoom.y,moved:false};e.target.setPointerCapture?.(e.pointerId)});
+ q("#lightboxImage").addEventListener("pointermove",e=>{const p=lightMousePan;if(!p||p.id!==e.pointerId||e.pointerType!=="mouse")return;if(Math.abs(e.clientX-p.x)>4||Math.abs(e.clientY-p.y)>4)p.moved=true;setLightZoom(lightZoom.scale,p.left+e.clientX-p.x,p.top+e.clientY-p.y)});
+ const endMouse=()=>{if(lightMousePan?.moved)lightIgnoreTap=Date.now()+400;lightMousePan=null;};
+ q("#lightboxImage").addEventListener("pointerup",endMouse);
+ q("#lightboxImage").addEventListener("pointercancel",endMouse);
+ q("#ideaLightbox").addEventListener("touchstart",e=>{
+  if(e.touches.length===2){const[a,b]=e.touches;lightPinch={distance:Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY),scale:lightZoom.scale};lightTouch=null;return;}
+  lightPinch=null;if(e.touches.length===1&&e.target.id==="lightboxImage"){const t=e.touches[0];lightTouch={x:t.clientX,y:t.clientY,lastX:t.clientX,lastY:t.clientY,dragged:false}}else lightTouch=null;
+ },{passive:true});
+ q("#ideaLightbox").addEventListener("touchmove",e=>{
+  if(lightPinch&&e.touches.length===2){const[a,b]=e.touches;const d=Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);if(lightPinch.distance>0)setLightZoom(lightPinch.scale*d/lightPinch.distance,lightZoom.x,lightZoom.y);lightIgnoreTap=Date.now()+450;e.preventDefault();return;}
+  if(lightZoom.scale>1&&lightTouch&&e.touches.length===1){const t=e.touches[0],dx=t.clientX-lightTouch.lastX,dy=t.clientY-lightTouch.lastY;lightTouch.dragged=true;setLightZoom(lightZoom.scale,lightZoom.x+dx,lightZoom.y+dy);lightTouch.lastX=t.clientX;lightTouch.lastY=t.clientY;lightIgnoreTap=Date.now()+350;e.preventDefault();}
+ },{passive:false});
+ q("#ideaLightbox").addEventListener("touchend",e=>{
+  if(lightPinch){if(e.touches.length<2){lightPinch=null;lightTouch=null;lightIgnoreTap=Date.now()+450;}return;}
+  const t=lightTouch;lightTouch=null;if(!t||lightZoom.scale>1||e.changedTouches.length!==1)return;
+  const dx=e.changedTouches[0].clientX-t.x;if(Math.abs(dx)>50){lightIgnoreTap=Date.now()+350;lightbox(lightIndex+(dx<0?1:-1));}
+ },{passive:true});
+
  document.addEventListener("keydown",e=>{if(q("#ideaLightbox").hidden)return;if(e.key==="Escape")closeLight();else if(e.key==="ArrowLeft")lightbox(lightIndex-1);else if(e.key==="ArrowRight")lightbox(lightIndex+1);});
  onAuthStateChanged(auth,async u=>{
   if(unsub){unsub();unsub=null;}user=u;role="";items=[];q("#ideasApp").hidden=true;q("#loginPanel").hidden=!!u;if(!u){notice("가족 구글 계정으로 로그인해 주세요.");return;}
