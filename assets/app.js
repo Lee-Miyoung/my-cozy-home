@@ -219,7 +219,7 @@ function familyActivityRow(item){
  <strong>${esc(record.title)}</strong>
  ${content?`<span class="record-feed-preview">${esc(content)}</span>`:`<span class="record-feed-preview record-feed-no-note">등록된 내용은 상세보기에서 확인할 수 있어요.</span>`}
  <span class="record-feed-more">상세보기 ${icon('arrow',13)}</span></button>
- ${photos.length?`<div class="record-feed-thumbs" aria-label="${esc(record.title)} 첨부 사진">${photos.slice(0,3).map((p,n)=>`<button type="button" class="record-feed-photo" data-action="preview-file" data-id="${esc(p.id)}" aria-label="${esc(record.title)} 사진 ${n+1} 크게 보기"><img data-blob="${esc(p.id)}" alt="${esc(record.title)} 현장 사진 ${n+1}" loading="lazy"></button>`).join('')}${photos.length>3?`<span class="record-feed-photo-more">+${photos.length-3}장</span>`:''}</div>`:''}
+ ${photos.length?`<div class="record-feed-thumbs" aria-label="${esc(record.title)} 첨부 사진">${photos.slice(0,3).map((p,n)=>`<button type="button" class="record-feed-photo" data-action="preview-file" data-id="${esc(p.id)}" aria-label="${esc(record.title)} 사진 ${n+1} 크게 보기"><img data-blob="${esc(p.id)}" alt="" loading="lazy"></button>`).join('')}${photos.length>3?`<span class="record-feed-photo-more">+${photos.length-3}장</span>`:''}</div>`:''}
  </article>`;
 }
 function familyUpcomingRow(t,today){
@@ -285,7 +285,7 @@ function familyRecordHome(){
  const records=[...journals,...taskMemos].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sort||'').localeCompare(a.sort||''));
  const photos=familyHomePhotos();
  const hero=familyHomeHeroPhoto(photos);
- const recent=photos.filter(p=>p.id!==hero?.id&&(p.origin==='journal'||p.origin==='cover')).slice(0,4);
+ const recent=photos.filter(p=>p.id!==hero?.id&&(p.origin==='journal'||p.origin==='cover')).slice(0,3);
  const docs=familyHomeDocuments();
  const nearest=upcoming[0];
  const shown=records.slice(0,4),remaining=records.slice(4);
@@ -308,7 +308,7 @@ function familyRecordHome(){
    </div>
    <div class="family-v4-quicklinks"><button class="btn" data-nav="baseline">철거 전·후 비교</button><button class="btn" data-nav="design">가족 아이디어</button><button class="btn" data-action="pick-family-cover">대표 사진 선택</button></div>
   </div>
-  <div class="family-v4-photo-area family-home-photo-group">
+  <div class="family-v4-photo-area family-home-photo-group ${recent.length?'':'no-mini'}">
    ${hero?`<div class="family-v4-mainphoto">
     <button class="family-v4-mainphoto-open" type="button" data-action="preview-file" data-id="${esc(hero.id)}" aria-label="대표 현장 사진 크게 보기"><img data-blob="${esc(hero.id)}" alt="" loading="lazy"><span class="family-v4-photo-label">${icon('camera',14)} 현장 사진 크게 보기</span></button>
     <button type="button" class="family-v4-photo-choose" data-action="pick-family-cover">${icon('edit',14)} 사진 변경</button>
