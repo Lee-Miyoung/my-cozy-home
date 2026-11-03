@@ -200,7 +200,7 @@ function familyHomePhotos(){
  };
  for(const j of state.journals||[])for(const p of j.photos||[])add(p,j.title,j.date,'journal',j.baselineCategory||'');
  for(const d of state.designs||[])for(const p of designPictures(d))add(p,d.title,d.created?.slice(0,10),'design');
- for(const d of state.documents||[])if(d.file?.type?.startsWith('image/'))add(d.file,d.title,d.date||d.added?.slice(0,10),'document');
+ for(const d of state.documents||[])for(const file of documentAttachments(d))if(file.type?.startsWith('image/'))add(file,d.title,d.date||d.added?.slice(0,10),'document');
  records.sort((a,b)=>b.date.localeCompare(a.date));
  if(state.project.cover)add(state.project.cover,state.project.title+' 대표 사진','9999-12-31','cover');
  const seen=new Set();
@@ -226,8 +226,8 @@ function familyUpcomingRow(t,today){
  return `<button type="button" class="record-upcoming-item" data-action="view-task" data-id="${esc(t.id)}"><span class="record-upcoming-date ${t.due<today?'is-late':''}">${dateLabel(t.due)}${t.due<today?' · 기한 지남':''}</span><strong>${esc(t.title)}</strong>${t.memo?`<span class="record-upcoming-note">${esc(t.memo)}</span>`:''}</button>`;
 }
 function familyDocumentRow(d){
- const type=d.file?.type==='application/pdf'?'PDF':d.file?.type?.startsWith('image/')?'사진':d.file?.name?.split('.').pop()?.toUpperCase()||'서류';
- return `<button type="button" class="family-doc-row" data-action="view-document" data-id="${esc(d.id)}"><span class="family-doc-icon">${icon('folder',17)}</span><span class="family-doc-text"><strong>${esc(d.title)}</strong><small>${esc(d.category||'서류')} · ${dateLabel(d.date||d.added?.slice(0,10))}${d.file?' · '+esc(type):' · 첨부 없음'}</small></span><span class="family-doc-chevron">${icon('arrow',15)}</span></button>`;
+ const attachments=documentAttachments(d),main=attachments[0];const type=main?.type==='application/pdf'?'PDF':main?.type?.startsWith('image/')?'사진':main?.name?.split('.').pop()?.toUpperCase()||'서류';
+ return `<button type="button" class="family-doc-row" data-action="view-document" data-id="${esc(d.id)}"><span class="family-doc-icon">${icon('folder',17)}</span><span class="family-doc-text"><strong>${esc(d.title)}</strong><small>${esc(d.category||'서류')} · ${dateLabel(d.date||d.added?.slice(0,10))}${attachments.length?' · '+esc(type)+' '+attachments.length+'개':' · 첨부 없음'}</small></span><span class="family-doc-chevron">${icon('arrow',15)}</span></button>`;
 }
 
 function familyHomeHeroPhoto(photos){
@@ -341,9 +341,10 @@ function openDocumentDetail(key){
  if(busy)return;
  const d=state.documents.find(x=>x.id===key);
  if(!d)return toast('서류를 찾을 수 없습니다.');
+ const files=documentAttachments(d);
  lastFocus=document.activeElement;
- $('#modalRoot').innerHTML=`<div class="modal record-detail-modal" role="dialog" aria-modal="true" aria-labelledby="family-doc-title"><div class="modal-header"><h2 id="family-doc-title">${esc(d.title)}</h2><button class="icon-btn" data-action="close-modal" aria-label="닫기">${icon('close',22)}</button></div><div class="modal-body record-detail-body"><span class="chip">${esc(d.category||'서류')}</span><dl class="record-detail-meta">${detailLine('등록 날짜',dateLabel(d.date||d.added?.slice(0,10)))}${detailLine('파일명',d.file?.name||'첨부 없음')}</dl>${d.memo?`<section class="record-detail-section"><h3>서류 메모</h3><p class="record-detail-text">${esc(d.memo)}</p></section>`:''}${d.file?`<div class="record-detail-buttons"><button class="btn primary" data-action="preview-file" data-id="${esc(d.file.id)}">파일 열기</button><button class="btn" data-action="download-file" data-id="${esc(d.file.id)}">파일 다운로드</button></div>`:'<p class="small muted">첨부된 파일이 없습니다.</p>'}<div class="record-detail-buttons"><button class="btn" data-action="close-modal">닫기</button><button class="btn" data-open="document" data-id="${esc(d.id)}">서류 수정</button></div></div></div>`;
- $('#modalRoot').classList.remove('hidden');document.body.style.overflow='hidden';
+ $('#modalRoot').innerHTML=`<div class="modal record-detail-modal" role="dialog" aria-modal="true" aria-labelledby="family-doc-title"><div class="modal-header"><h2 id="family-doc-title">${esc(d.title)}</h2><button class="icon-btn" data-action="close-modal" aria-label="닫기">${icon('close',22)}</button></div><div class="modal-body record-detail-body"><span class="chip">${esc(d.category||'서류')}</span><dl class="record-detail-meta">${detailLine('등록 날짜',dateLabel(d.date||d.added?.slice(0,10)))}${detailLine('첨부 파일',files.length+'개')}</dl>${d.memo?`<section class="record-detail-section"><h3>서류 메모</h3><p class="record-detail-text">${esc(d.memo)}</p></section>`:''}<section class="record-detail-section"><h3>첨부 사진·파일</h3>${documentFileButtons(d)}</section><div class="record-detail-buttons"><button class="btn" data-action="close-modal">닫기</button><button class="btn primary" data-open="document" data-id="${esc(d.id)}">파일 추가·서류 수정</button></div></div></div>`;
+ $('#modalRoot').classList.remove('hidden');document.body.style.overflow='hidden';loadImgs();
  $('#modalRoot').querySelector('[aria-label="닫기"]')?.focus({preventScroll:true});
 }
 function detailLine(label,value){
@@ -564,12 +565,13 @@ function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.
 let gallerySession=null;
 function galleryItemsForClick(button,key){
  const base=button?.closest('.baseline-category');
- const record=button?.closest('.baseline-record,.journal-entry,.task-log-entry,.record-entry');
+ const record=button?.closest('.baseline-record,.journal-entry,.task-log-entry,.record-entry');const documentCard=button?.closest('[data-document-id]');
  const familyPhotos=button?.closest('.family-home-photo-group');
  const pair=button?.closest('.baseline-pair');
  let photos=[];
  if(familyPhotos){
   photos=familyHomePhotos();
+ }else if(documentCard?.dataset.documentId){const d=state.documents.find(row=>row.id===documentCard.dataset.documentId);photos=documentAttachments(d).filter(f=>f.type?.startsWith('image/')).map(f=>({...f,caption:d?.title||'서류 사진'}));
  }else if(base?.dataset.albumCategory){
   photos=baselineBeforePhotos(base.dataset.albumCategory).map(({photo,j})=>({...photo,caption:j.title}));
  }else if(record?.dataset.recordId){
