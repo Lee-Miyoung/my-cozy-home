@@ -194,11 +194,11 @@ function activityContent(j){return [j.body,j.siteNotes,j.decision,j.memo].filter
 
 function familyHomePhotos(){
  const records=[];
- const add=(photo,caption,date,origin)=>{
+ const add=(photo,caption,date,origin,category='')=>{
   if(!photo?.id||(photo.type&&!photo.type.startsWith('image/')))return;
-  records.push({...photo,caption,date:date||'',origin});
+  records.push({...photo,caption,date:date||'',origin,category});
  };
- for(const j of state.journals||[])for(const p of j.photos||[])add(p,j.title,j.date,'journal');
+ for(const j of state.journals||[])for(const p of j.photos||[])add(p,j.title,j.date,'journal',j.baselineCategory||'');
  for(const d of state.designs||[])for(const p of designPictures(d))add(p,d.title,d.created?.slice(0,10),'design');
  for(const d of state.documents||[])if(d.file?.type?.startsWith('image/'))add(d.file,d.title,d.date||d.added?.slice(0,10),'document');
  records.sort((a,b)=>b.date.localeCompare(a.date));
@@ -229,41 +229,114 @@ function familyDocumentRow(d){
  const type=d.file?.type==='application/pdf'?'PDF':d.file?.type?.startsWith('image/')?'사진':d.file?.name?.split('.').pop()?.toUpperCase()||'서류';
  return `<button type="button" class="family-doc-row" data-action="view-document" data-id="${esc(d.id)}"><span class="family-doc-icon">${icon('folder',17)}</span><span class="family-doc-text"><strong>${esc(d.title)}</strong><small>${esc(d.category||'서류')} · ${dateLabel(d.date||d.added?.slice(0,10))}${d.file?' · '+esc(type):' · 첨부 없음'}</small></span><span class="family-doc-chevron">${icon('arrow',15)}</span></button>`;
 }
+
+function familyHomeHeroPhoto(photos){
+ const chosen=state.project.cover?.id;
+ if(chosen){const exact=photos.find(p=>p.id===chosen);if(exact)return exact;}
+ const records=photos.filter(p=>p.origin==='journal');
+ const ranked=[...records].sort((a,b)=>{
+  const score=p=>{
+   let points=0;
+   if(p.category==='exterior')points+=110;
+   else if(p.category==='interior')points+=100;
+   else if(p.category==='grounds')points+=85;
+   else if(p.category==='outbuilding')points+=78;
+   else if(p.category==='facilities')points+=64;
+   if(/철거\s*전|주택|집\s*외관|실내|현장\s*사진|마당|집\s*내부/.test(p.caption||''))points+=35;
+   if(/통화|협의|문의|담당자|서류|공문|견적|전화/.test(p.caption||''))points-=80;
+   return points;
+  };
+  return score(b)-score(a)||b.date.localeCompare(a.date);
+ });
+ return ranked[0]||photos[0]||null;
+}
+function familyHomeCoverPicker(){
+ if(busy)return;
+ const photos=familyHomePhotos().slice(0,80);
+ if(!photos.length){openModal('journal');return;}
+ lastFocus=document.activeElement;
+ $('#modalRoot').innerHTML=`<div class="modal family-cover-modal" role="dialog" aria-modal="true" aria-labelledby="familyCoverTitle">
+ <div class="modal-header"><div><span class="eyebrow">HOUSE COVER</span><h2 id="familyCoverTitle">대표 사진 선택</h2></div><button type="button" class="icon-btn" data-action="close-modal" aria-label="닫기">${icon('close',22)}</button></div>
+ <div class="modal-body family-cover-modal-body"><p>실제 집의 모습이 잘 보이는 사진을 선택해 주세요. 이미 등록한 사진을 그대로 사용하고, 원본은 이동하거나 삭제하지 않아요.</p>
+ <div class="family-cover-picks">${photos.map(p=>`<button type="button" data-action="set-family-cover" data-id="${esc(p.id)}" class="family-cover-choice ${p.id===state.project.cover?.id?'is-selected':''}" aria-label="${esc(p.caption||'사진')}을 대표 사진으로 지정"><span class="family-cover-choice-image"><img data-blob="${esc(p.id)}" alt="" loading="lazy"></span><span class="family-cover-choice-caption">${esc((p.caption||p.name||'현장 사진').slice(0,70))}</span><span class="family-cover-choice-caption-secondary">${p.id===state.project.cover?.id?'현재 대표 사진':'대표 사진으로 지정'}</span></button>`).join('')}</div></div></div>`;
+ $('#modalRoot').classList.remove('hidden');document.body.style.overflow='hidden';loadImgs();
+ $('#modalRoot').querySelector('[data-action="close-modal"]')?.focus({preventScroll:true});
+}
+async function familySetHomeCover(key){
+ if(catalog.activeId!=='family-moms-garden')throw Error('엄마의 뜰 프로젝트에서만 사용할 수 있어요.');
+ const item=familyHomePhotos().find(p=>p.id===key);
+ if(!item)throw Error('사진 정보를 찾을 수 없습니다.');
+ const file=await ensureFile(key);
+ if(!file?.blob||!String(file.type||item.type||'').startsWith('image/'))throw Error('이 사진은 현재 열 수 없어요. 다른 사진을 선택해 주세요.');
+ const draft=clone(state);
+ draft.project.cover={id:item.id,name:item.name||file.name||'대표 사진',type:item.type||file.type||'image/jpeg',size:Number(item.size||file.size||file.blob.size||0)};
+ await persist(draft);
+ await refreshProjectSummaries();
+ closeModal(true);render();toast('대표 사진을 변경했어요.');
+}
 function familyRecordHome(){
  const today=localDate();
- const open=state.tasks.filter(t=>!t.archivedRecord&&t.status!=='done');
- const upcoming=open.filter(t=>t.due).sort((a,b)=>a.due.localeCompare(b.due));
- const undated=open.filter(t=>!t.due);
+ const pending=state.tasks.filter(t=>!t.archivedRecord&&t.status!=='done');
+ const upcoming=pending.filter(t=>t.due).sort((a,b)=>a.due.localeCompare(b.due));
+ const undated=pending.filter(t=>!t.due);
  const todayRecords=state.journals.filter(j=>j.date===today).length;
- const datedJournal=state.journals.map(j=>({kind:'journal',row:j,date:j.date||j.created?.slice(0,10)||'',sort:j.created||''}));
- const taskMemos=state.tasks.filter(t=>t.memo?.trim()&&!t.archivedRecord).map(t=>({kind:'task-memo',row:t,date:t.created?.slice(0,10)||t.due||'',sort:t.created||''}));
- const records=[...datedJournal,...taskMemos].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sort||'').localeCompare(a.sort||''));
- const photos=familyHomePhotos(),docs=familyHomeDocuments(),feature=state.project.cover?photos.find(p=>p.id===state.project.cover.id):photos[0];
- const shownRecords=records.slice(0,5),remainingRecords=records.slice(5);
- return `${heading('엄마의 뜰','현장 사진과 서류, 통화 내용과 예정 일정을 한눈에 확인하세요.',`<button class="btn" data-open="journal" data-record-type="call">${icon('plus',15)} 오늘 기록</button><button class="btn primary" data-open="document">${icon('plus',15)} 서류 등록</button>`)}
- <section class="family-main-hero card"><div class="family-main-cover ${feature?'has-photo':''}">${feature?`<button type="button" class="family-main-cover-button family-home-photo-group" data-action="preview-file" data-id="${esc(feature.id)}" aria-label="우리 집 대표 사진 크게 보기"><img data-blob="${esc(feature.id)}" alt="${esc(feature.caption||'엄마의 뜰 사진')}" loading="lazy"><span>사진 확대 ${icon('arrow',13)}</span></button>`:`<button type="button" class="family-main-cover-empty" data-open="journal">${icon('camera',25)}<span>첫 현장 사진 등록하기</span></button>`}</div>
- <div class="family-main-info"><span class="eyebrow">FAMILY PROJECT</span><h2>${esc(state.project.title||'엄마의 뜰')}</h2><p>${esc(state.project.description||'삼남매가 함께 남기는 우리 집 이야기')}</p><div class="family-main-counts"><button data-nav="baseline"><b>${photos.length}</b> 사진</button><button data-nav="files"><b>${docs.length}</b> 서류</button><button data-nav="journal"><b>${state.journals.length}</b> 활동 기록</button></div><div class="family-main-actions"><button class="btn sm" data-open="journal">${icon('plus',14)} 사진 등록</button><button class="btn sm" data-nav="baseline">전·후 사진 비교</button><button class="btn sm" data-nav="design">가족 아이디어</button></div></div></section>
- <div class="family-main-media">
- <section class="card family-media-panel family-home-photos family-home-photo-group" aria-label="등록된 현장 사진"><div class="family-media-heading"><div><h2>최근 현장 사진 <span>${photos.length}</span></h2><p>사진을 누르면 확대하고 연속으로 볼 수 있어요.</p></div><button class="btn sm" data-nav="journal">전체 보기</button></div>
- ${photos.length?`<div class="family-home-photo-grid">${photos.slice(0,4).map(p=>`<button type="button" class="family-home-photo-thumb" data-action="preview-file" data-id="${esc(p.id)}" aria-label="${esc(p.caption||p.name)} 사진 보기"><img data-blob="${esc(p.id)}" alt="${esc(p.caption||p.name)}" loading="lazy"></button>`).join('')}</div>${photos.length>4?`<p class="family-media-more">외 ${photos.length-4}장 · 사진을 누르면 전체를 넘겨볼 수 있어요.</p>`:''}`:`<div class="family-media-empty">${icon('camera',21)}<span>등록된 사진이 없어요.</span><button class="btn sm" data-open="journal">사진 추가</button></div>`}
+ const journals=state.journals.map(j=>({kind:'journal',row:j,date:j.date||j.created?.slice(0,10)||'',sort:j.created||''}));
+ const taskMemos=state.tasks.filter(t=>t.memo?.trim()&&!t.archivedRecord&&!state.journals.some(j=>j.taskId===t.id&&[j.body,j.memo].some(x=>x&&x.includes(t.memo)))).map(t=>({kind:'task-memo',row:t,date:t.created?.slice(0,10)||t.due||'',sort:t.created||''}));
+ const records=[...journals,...taskMemos].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.sort||'').localeCompare(a.sort||''));
+ const photos=familyHomePhotos();
+ const hero=familyHomeHeroPhoto(photos);
+ const recent=photos.filter(p=>p.id!==hero?.id&&(p.origin==='journal'||p.origin==='cover')).slice(0,4);
+ const docs=familyHomeDocuments();
+ const nearest=upcoming[0];
+ const shown=records.slice(0,4),remaining=records.slice(4);
+ return `<div class="family-dashboard-v4">
+ <header class="family-v4-titlebar">
+  <div><span class="family-v4-eyebrow">CHAEPIUM / FAMILY PROJECT</span><h1>${esc(state.project.title||'엄마의 뜰')}</h1><p>현장 사진과 오늘의 기록, 앞으로 할 일을 한눈에 확인해요.</p></div>
+  <div class="family-v4-main-actions"><button class="btn primary" data-open="journal" data-record-type="call">${icon('plus',16)} 오늘 기록</button><button class="btn" data-open="task">${icon('plus',15)} 일정 추가</button></div>
+ </header>
+ <section class="family-v4-top card">
+  <div class="family-v4-intro">
+   <span class="family-v4-overline">우리 집 기록 현황</span>
+   <p class="family-v4-description">${esc(state.project.description||'우리 가족이 함께 기록하는 집짓기 과정')}</p>
+   <div class="family-v4-summary">
+    <button data-nav="baseline"><strong>${photos.length}</strong><span>등록한 사진</span></button>
+    <button data-nav="journal"><strong>${state.journals.length}</strong><span>활동 기록</span></button>
+    <button data-nav="files"><strong>${docs.length}</strong><span>등록 서류</span></button>
+   </div>
+   <div class="family-v4-featured-next"><span>${icon('calendar',16)} 다음 일정</span>
+    ${nearest?`<button data-action="view-task" data-id="${esc(nearest.id)}"><strong>${esc(nearest.title)}</strong><small>${dateLabel(nearest.due)}</small>${icon('arrow',15)}</button>`:`<p>아직 날짜가 정해진 일정이 없어요.</p>`}
+   </div>
+   <div class="family-v4-quicklinks"><button class="btn" data-nav="baseline">철거 전·후 비교</button><button class="btn" data-nav="design">가족 아이디어</button><button class="btn" data-action="pick-family-cover">대표 사진 선택</button></div>
+  </div>
+  <div class="family-v4-photo-area family-home-photo-group">
+   ${hero?`<div class="family-v4-mainphoto">
+    <button class="family-v4-mainphoto-open" type="button" data-action="preview-file" data-id="${esc(hero.id)}" aria-label="대표 현장 사진 크게 보기"><img data-blob="${esc(hero.id)}" alt="" loading="lazy"><span class="family-v4-photo-label">${icon('camera',14)} 현장 사진 크게 보기</span></button>
+    <button type="button" class="family-v4-photo-choose" data-action="pick-family-cover">${icon('edit',14)} 사진 변경</button>
+   </div>`:`<button class="family-v4-photo-empty" data-open="journal" type="button">${icon('camera',27)}<strong>첫 현장 사진을 등록해 주세요</strong><span>사진을 등록하면 여기에 표시돼요.</span></button>`}
+   ${recent.length?`<div class="family-v4-photo-strip">${recent.map(p=>`<button class="family-v4-photo-thumb" type="button" data-action="preview-file" data-id="${esc(p.id)}" aria-label="현장 사진 크게 보기"><img data-blob="${esc(p.id)}" alt="" loading="lazy"></button>`).join('')}${photos.length>recent.length+Number(!!hero)?`<button type="button" class="family-v4-gallery-more" data-nav="journal">+ ${photos.length-recent.length-Number(!!hero)}장 <span>전체 보기</span></button>`:''}</div>`:''}
+  </div>
  </section>
- <section class="card family-media-panel family-home-docs" aria-label="등록된 서류"><div class="family-media-heading"><div><h2>등록 서류 <span>${docs.length}</span></h2><p>제목을 누르면 파일과 메모를 확인할 수 있어요.</p></div><button class="btn sm" data-nav="files">전체 보기</button></div>
- <div class="family-doc-list">${docs.length?docs.slice(0,4).map(familyDocumentRow).join(''):`<div class="family-media-empty">${icon('folder',21)}<span>아직 등록된 서류가 없어요.</span><button class="btn sm" data-open="document">서류 추가</button></div>`}</div>
- </section></div>
- <section class="family-main-work"><div class="record-hub-grid">
- <section class="card record-hub-panel"><div class="record-panel-head"><div><h2>통화·현장 기록 <span class="record-section-count">${records.length}</span></h2><p>내용을 누르면 메모 전체를 볼 수 있어요.</p></div><button class="btn sm" data-open="journal" data-record-type="call">${icon('plus',14)} 기록</button></div>
- <div class="record-feed">${shownRecords.length?shownRecords.map(familyActivityRow).join(''):`<div class="record-empty">아직 활동 기록이 없어요.</div>`}
- ${remainingRecords.length?`<details class="record-inline-more"><summary>이전 기록 ${remainingRecords.length}건 더 보기</summary>${remainingRecords.map(familyActivityRow).join('')}</details>`:''}</div>
- <div class="family-work-footer"><span>오늘 ${todayRecords}건 기록</span><button type="button" data-nav="journal">기록 전체 보기 ${icon('arrow',13)}</button></div>
- </section>
- <section class="card record-hub-panel"><div class="record-panel-head"><div><h2>다가오는 일정 <span class="record-section-count">${open.length}</span></h2><p>앞으로 할 일을 확인하세요.</p></div><button class="btn sm" data-open="task">${icon('plus',14)} 일정</button></div>
- <div class="record-upcoming">${upcoming.length?upcoming.slice(0,5).map(t=>familyUpcomingRow(t,today)).join(''):`<div class="record-empty">예정된 일정이 없어요.</div>`}
- ${upcoming.length>5?`<details class="record-inline-more"><summary>추가 일정 ${upcoming.length-5}건 보기</summary>${upcoming.slice(5).map(t=>familyUpcomingRow(t,today)).join('')}</details>`:''}
- ${undated.length?`<details class="record-inline-more"><summary>날짜 미정 할 일 ${undated.length}건</summary>${undated.map(t=>`<button class="record-undated-button" data-action="view-task" data-id="${esc(t.id)}">${esc(t.title)} ${icon('arrow',13)}</button>`).join('')}</details>`:''}</div>
- <div class="family-work-footer"><span>상세보기에서 메모 확인</span><button type="button" data-nav="stages">전체 일정 ${icon('arrow',13)}</button></div>
- </section></div></section>`;
+ <div class="family-v4-content">
+  <section class="card family-v4-activities">
+   <div class="family-v4-section-head"><div><span class="family-v4-eyebrow">DAILY NOTES</span><h2>통화·현장 기록 <span>${records.length}</span></h2><p>핵심만 읽고, 자세한 내용은 항목을 눌러 확인하세요.</p></div><button type="button" class="btn sm" data-open="journal" data-record-type="call">${icon('plus',15)} 기록</button></div>
+   <div class="family-v4-record-list">${shown.length?shown.map(familyActivityRow).join(''):`<div class="family-v4-empty"><span>첫 통화·현장 기록을 남겨보세요.</span><button class="btn sm" data-open="journal" data-record-type="call">기록하기</button></div>`}
+    ${remaining.length?`<details class="record-inline-more"><summary>이전 기록 ${remaining.length}건 더 보기</summary>${remaining.map(familyActivityRow).join('')}</details>`:''}
+   </div><div class="family-v4-foot"><span>오늘 ${todayRecords}건 작성</span><button data-nav="journal">전체 활동 기록 보기 ${icon('arrow',14)}</button></div>
+  </section>
+  <aside class="family-v4-side">
+   <section class="card family-v4-schedule"><div class="family-v4-section-head"><div><span class="family-v4-eyebrow">NEXT STEPS</span><h2>다가오는 일정 <span>${pending.length}</span></h2></div><button class="btn sm" data-open="task">${icon('plus',14)} 추가</button></div>
+    <div class="family-v4-task-list">${upcoming.length?upcoming.slice(0,4).map(t=>familyUpcomingRow(t,today)).join(''):`<div class="family-v4-empty">예정된 일정이 없어요.</div>`}
+    ${upcoming.length>4?`<details class="record-inline-more"><summary>추가 일정 ${upcoming.length-4}건</summary>${upcoming.slice(4).map(t=>familyUpcomingRow(t,today)).join('')}</details>`:''}
+    ${undated.length?`<details class="record-inline-more"><summary>날짜 미정 할 일 ${undated.length}건</summary>${undated.map(t=>`<button class="record-undated-button" data-action="view-task" data-id="${esc(t.id)}">${esc(t.title)} ${icon('arrow',13)}</button>`).join('')}</details>`:''}</div>
+    <div class="family-v4-foot"><span>세부 일정 관리</span><button data-nav="stages">전체 일정 보기 ${icon('arrow',14)}</button></div>
+   </section>
+   <section class="card family-v4-documents"><div class="family-v4-section-head"><div><span class="family-v4-eyebrow">DOCUMENTS</span><h2>등록 서류 <span>${docs.length}</span></h2></div><button class="btn sm" data-open="document">${icon('plus',14)} 추가</button></div>
+    ${docs.length?`<div class="family-doc-list">${docs.slice(0,3).map(familyDocumentRow).join('')}</div>`:`<div class="family-v4-empty">아직 등록한 서류가 없어요. 도면과 견적서를 한곳에 보관할 수 있어요.</div>`}
+    <div class="family-v4-foot"><span>공유 서류 보관</span><button data-nav="files">서류 전체 보기 ${icon('arrow',14)}</button></div>
+   </section>
+  </aside>
+ </div></div>`;
 }
-
 function openDocumentDetail(key){
  if(busy)return;
  const d=state.documents.find(x=>x.id===key);
@@ -577,8 +650,8 @@ const PUBLIC_PAGES=new Set(['landing','projects','settings','more','brand']);
 function render(){if(!Object.hasOwn(PAGES,ui.page))ui.page=catalog.activeId?'home':'projects';if(!catalog.activeId&&!PUBLIC_PAGES.has(ui.page))ui.page='projects';document.body.className=ui.page==='landing'?'landing-screen':`workspace-screen page-${ui.page}`;$('#railMark').innerHTML=`<img src="./assets/brand/logo-main.png" alt="채피움 CHAEPIUM" width="1400" height="680">`;$('#mobileMark').innerHTML=`<img src="./assets/brand/logo-main.png" alt="채피움 CHAEPIUM" width="1400" height="680">`;$('#railNav').innerHTML=NAV.map(([p,t,ic])=>`<button class="nav-btn ${ui.page===p?'active':''} ${p==='baseline'?'baseline-featured':''}" data-nav="${p}">${icon(ic)}<span>${t}</span></button>`).join('')+`<button class="nav-btn ${ui.page==='more'?'active':''}" data-nav="more">${icon('more')}<span>더보기</span></button><button class="nav-btn" data-nav="landing">${icon('home')}<span>서비스 소개</span></button>`;const mini=[['home','홈','home'],['baseline','전후 비교','camera'],['journal','사진','book'],['budget','비용','wallet'],['more','더보기','more']];$('#bottomNav').innerHTML=mini.map(([p,t,ic])=>`<button class="${ui.page===p||(p==='more'&&!mini.some(x=>x[0]===ui.page))?'active':''}" data-nav="${p}">${icon(ic,21)}<span>${t}</span></button>`).join('');$('#topTitle').textContent=ui.page==='home'&&catalog.activeId==='family-moms-garden'?'엄마의 뜰 · 활동 기록':TITLES[ui.page]||'채피움';const switcher=$('#projectSwitcher');switcher.innerHTML=visibleProjectSummaries().map(p=>`<option value="${esc(p.id)}" ${p.id===catalog.activeId?'selected':''}>${esc(p.state.project.title||'이름 없는 프로젝트')}</option>`).join('')||'<option>가족 프로젝트 연결 전</option>';switcher.disabled=!catalog.ids.length;$('#mainContent').innerHTML=(catalog.activeId==='family-moms-garden'&&!window.chaeFamilyBridge?.canView()&&!['landing','brand','projects'].includes(ui.page))?'<section class="card pane"><h2>엄마의 뜰 · 가족 로그인</h2><p>삼남매가 함께 쓰는 프로젝트입니다. 위의 가족 구글 로그인 버튼으로 로그인해 주세요.</p></section>':PAGES[ui.page]();$('#quickAdd').hidden=ui.page==='landing'||!catalog.activeId;const headerAdd=document.querySelector('.workspace-add');if(headerAdd)headerAdd.hidden=!catalog.activeId;document.title=ui.page==='landing'?'채피움 CHAEPIUM | 집을 짓는 모든 순간을':(TITLES[ui.page]||'채피움')+' | 채피움';loadImgs();window.chaeFamilyBridge?.update?.();}
 function navigate(page){if(!Object.hasOwn(PAGES,page))return;if(!catalog.activeId&&!PUBLIC_PAGES.has(page))page='projects';const previous=ui.page;ui.page=page;if(location.hash!=='#'+page)history.pushState({chaepium:true,from:previous},'',location.pathname+location.search+'#'+page);render();window.scrollTo({top:0,behavior:'instant'});}
 function quickAdd(){if(!catalog.activeId)return openModal('new-project');lastFocus=document.activeElement;$('#modalRoot').innerHTML=`<div class="modal quick-add-modal" role="dialog" aria-modal="true" aria-labelledby="quick-add-title"><div class="modal-header"><h2 id="quick-add-title">오늘 무엇을 기록할까요?</h2><button class="icon-btn" data-action="close-modal" aria-label="닫기">${icon('close',22)}</button></div><div class="modal-body quick-add-options">${[['journal','사진일기','camera'],['task','일정·할 일','calendar'],['expense','비용','wallet'],['document','서류','folder'],['design','자재·아이디어','palette'],['contact','연락처','phone']].map(([kind,label,ic])=>`<button data-open="${kind}">${icon(ic,24)}<span>${label}</span></button>`).join('')}</div></div>`;$('#modalRoot').classList.remove('hidden');document.body.style.overflow='hidden';$('#modalRoot').querySelector('button').focus();}
-async function handleClick(event){const close=event.target.closest('[data-action="close-modal"]');if(close){closeModal();return;}if(busy)return;const nav=event.target.closest('[data-nav]');if(nav){event.preventDefault();navigate(nav.dataset.nav);return;}const op=event.target.closest('[data-open]');if(op){const draft=op.dataset.task?journalDraftForTask(op.dataset.task):(op.dataset.recordType?{type:op.dataset.recordType==='call'?'통화·문의':'현장일기',date:localDate(),stage:visibleStages()[0]?.id||'prep',quickEntry:true}:(op.dataset.baseline?baselineDraft(op.dataset.baseline,op.dataset.phase||'before',op.dataset.beforePhoto||''):null));openModal(op.dataset.open,op.dataset.id,draft);return;}const button=event.target.closest('[data-action]');if(!button)return;const {action,id:key}=button.dataset;if(action==='clear-pasted'){const input=button.closest('.field')?.querySelector('input[type=file]');if(input){clipboardUploads.delete(input);attachmentPasteZone(input);}return;}if(action==='gallery-toggle-zoom'){galleryToggleZoom();return;}if(action==='gallery-zoom-in'){galleryZoomStep(1);return;}if(action==='gallery-zoom-out'){galleryZoomStep(-1);return;}if(action==='gallery-zoom-reset'){gallerySetZoom(1);return;}if(action==='gallery-prev'){await showGalleryPhoto((gallerySession?.index||0)-1);return;}if(action==='gallery-next'){await showGalleryPhoto((gallerySession?.index||0)+1);return;}if(action==='gallery-go'){await showGalleryPhoto(Number(button.dataset.index));return;}if(action==='family-signin'){window.chaeFamilyBridge?.login?.();return;}if(action==='family-create'){window.chaeFamilyBridge?.create?.();return;}if(action==='family-refresh'){window.chaeFamilyBridge?.refresh?.();return;}if(action==='scroll-compare'){$('#compareArea')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(action==='quick-add')return quickAdd();if(action==='start-project'){if(catalog.ids.length)navigate('projects');else openModal('new-project');return;}if(action==='back'){if(history.state?.from)history.back();else navigate(catalog.activeId?'home':'projects');return;}if(action==='restore'){$('#restoreInput').click();return;}if(action==='focus-stage'){ui.stage=key;ui.taskStatus='all';render();$('#task-list')?.scrollIntoView({block:'start'});return;}if(action==='doc-category'){ui.docCategory=button.dataset.value;render();return;}if(action==='view-task'||action==='view-record'){openItemDetail(action==='view-task'?'task':'journal',key);return;}if(action==='view-document'){openDocumentDetail(key);return;}
-busy=true;try{if(action==='switch-project')await switchProject(key);else if(action==='delete-project')await deleteProject(key);else if(action==='delete')await deleteRecord(button.dataset.kind,key);else if(action==='classify-task-record')await classifyTaskAsRecord(key);else if(action==='toggle-task'||action==='toggle-care'){const draft=clone(state),rows=action==='toggle-task'?draft.tasks:draft.care,row=rows.find(t=>t.id===key);if(row){if(action==='toggle-task')row.status=row.status==='done'?'todo':'done';else row.done=!row.done;await persist(draft);render();}}else if(action==='download-file')await downloadFile(key);else if(action==='preview-file')await previewFile(key,button);else if(action==='backup')await backup();else if(action==='recovery')await recoverBackup();else if(action==='cleanup'){if(confirm('어떤 프로젝트에서도 사용하지 않는 첨부파일만 정리할까요?')){await removeUnused((await read('attachments')).map(f=>f.id));await refreshStorage();render();toast('사용하지 않는 첨부파일을 정리했습니다.');}}}catch(e){console.error('Action failed',e);toast(e.message||'처리하지 못했습니다.');}finally{busy=false;}}
+async function handleClick(event){const close=event.target.closest('[data-action="close-modal"]');if(close){closeModal();return;}if(busy)return;const nav=event.target.closest('[data-nav]');if(nav){event.preventDefault();navigate(nav.dataset.nav);return;}const op=event.target.closest('[data-open]');if(op){const draft=op.dataset.task?journalDraftForTask(op.dataset.task):(op.dataset.recordType?{type:op.dataset.recordType==='call'?'통화·문의':'현장일기',date:localDate(),stage:visibleStages()[0]?.id||'prep',quickEntry:true}:(op.dataset.baseline?baselineDraft(op.dataset.baseline,op.dataset.phase||'before',op.dataset.beforePhoto||''):null));openModal(op.dataset.open,op.dataset.id,draft);return;}const button=event.target.closest('[data-action]');if(!button)return;const {action,id:key}=button.dataset;if(action==='clear-pasted'){const input=button.closest('.field')?.querySelector('input[type=file]');if(input){clipboardUploads.delete(input);attachmentPasteZone(input);}return;}if(action==='gallery-toggle-zoom'){galleryToggleZoom();return;}if(action==='gallery-zoom-in'){galleryZoomStep(1);return;}if(action==='gallery-zoom-out'){galleryZoomStep(-1);return;}if(action==='gallery-zoom-reset'){gallerySetZoom(1);return;}if(action==='gallery-prev'){await showGalleryPhoto((gallerySession?.index||0)-1);return;}if(action==='gallery-next'){await showGalleryPhoto((gallerySession?.index||0)+1);return;}if(action==='gallery-go'){await showGalleryPhoto(Number(button.dataset.index));return;}if(action==='family-signin'){window.chaeFamilyBridge?.login?.();return;}if(action==='family-create'){window.chaeFamilyBridge?.create?.();return;}if(action==='family-refresh'){window.chaeFamilyBridge?.refresh?.();return;}if(action==='scroll-compare'){$('#compareArea')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(action==='quick-add')return quickAdd();if(action==='start-project'){if(catalog.ids.length)navigate('projects');else openModal('new-project');return;}if(action==='back'){if(history.state?.from)history.back();else navigate(catalog.activeId?'home':'projects');return;}if(action==='restore'){$('#restoreInput').click();return;}if(action==='focus-stage'){ui.stage=key;ui.taskStatus='all';render();$('#task-list')?.scrollIntoView({block:'start'});return;}if(action==='doc-category'){ui.docCategory=button.dataset.value;render();return;}if(action==='pick-family-cover'){familyHomeCoverPicker();return;}if(action==='view-task'||action==='view-record'){openItemDetail(action==='view-task'?'task':'journal',key);return;}if(action==='view-document'){openDocumentDetail(key);return;}
+busy=true;try{if(action==='switch-project')await switchProject(key);else if(action==='delete-project')await deleteProject(key);else if(action==='set-family-cover')await familySetHomeCover(key);else if(action==='delete')await deleteRecord(button.dataset.kind,key);else if(action==='classify-task-record')await classifyTaskAsRecord(key);else if(action==='toggle-task'||action==='toggle-care'){const draft=clone(state),rows=action==='toggle-task'?draft.tasks:draft.care,row=rows.find(t=>t.id===key);if(row){if(action==='toggle-task')row.status=row.status==='done'?'todo':'done';else row.done=!row.done;await persist(draft);render();}}else if(action==='download-file')await downloadFile(key);else if(action==='preview-file')await previewFile(key,button);else if(action==='backup')await backup();else if(action==='recovery')await recoverBackup();else if(action==='cleanup'){if(confirm('어떤 프로젝트에서도 사용하지 않는 첨부파일만 정리할까요?')){await removeUnused((await read('attachments')).map(f=>f.id));await refreshStorage();render();toast('사용하지 않는 첨부파일을 정리했습니다.');}}}catch(e){console.error('Action failed',e);toast(e.message||'처리하지 못했습니다.');}finally{busy=false;}}
 // Additive v1 migration: retain original state and attachment IDs; never reset an existing store.
 async function init(){try{db=await openDB();const savedCatalog=await read('meta','workspace'),legacy=await read('meta','state');if(savedCatalog){if(savedCatalog.schema!==2||!Array.isArray(savedCatalog.ids))throw Error('프로젝트 목록을 읽을 수 없습니다. 데이터를 삭제하지 말고 백업을 확인해 주세요.');catalog=savedCatalog;state=catalog.activeId?await read('meta','project:'+catalog.activeId):freshState();if(catalog.activeId)validState(state);}else if(legacy){validState(legacy);const legacyId=id();catalog={schema:2,activeId:legacyId,ids:[legacyId],revision:1};await workspaceWrite(0,tx=>{const m=tx.objectStore('meta');m.put(legacy,'legacy-original-v1');m.put(legacy,'project:'+legacyId);m.put(catalog,'workspace')});state=legacy;}else{catalog={schema:2,activeId:null,ids:[],revision:0};state=freshState();await workspaceWrite(0,tx=>tx.objectStore('meta').put(catalog,'workspace'));}if(savedCatalog&&legacy&&JSON.stringify(legacy)!==JSON.stringify(catalog.activeId?state:null)){validState(legacy);const recoveredId=id(),nextCatalog={...catalog,activeId:recoveredId,ids:[...catalog.ids,recoveredId],recoveredIds:[...(catalog.recoveredIds||[]),recoveredId],revision:(catalog.revision||0)+1};await workspaceWrite(catalog.revision||0,tx=>{const m=tx.objectStore('meta');m.put(legacy,'project:'+recoveredId);m.put(nextCatalog,'workspace');m.put(legacy,'state');},['meta'],true);catalog=nextCatalog;state=legacy;toast('이전 버전 탭의 기록을 별도 프로젝트로 보존했습니다. 이전 탭을 닫아 주세요.');}else if(savedCatalog&&catalog.activeId&&!legacy){const nextCatalog={...catalog,revision:(catalog.revision||0)+1};await workspaceWrite(catalog.revision||0,tx=>{tx.objectStore('meta').put(state,'state');tx.objectStore('meta').put(nextCatalog,'workspace');},['meta'],true);catalog=nextCatalog;}await refreshProjectSummaries();for(const p of projectSummaries)validState(p.state);await refreshStorage();const requested=location.hash.slice(1);ui.page=Object.hasOwn(PAGES,requested)?requested:(catalog.activeId?'home':'projects');history.replaceState({chaepium:true},'',location.href);render();window.dispatchEvent(new Event('chaepium-ready'));}catch(e){console.error('Initialization failed',e);$('#mainContent').innerHTML=`<div class="banner warning"><h1>기록 저장소를 열지 못했습니다</h1><p>${esc(e.message)}</p><p>브라우저 데이터를 삭제하지 마세요. 일반 브라우저 모드의 저장 공간과 기존 백업 파일을 확인해 주세요.</p></div>`;}}
 // A cloud project is a second copy; never replace the original private project.
