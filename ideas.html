@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#49354F"><meta name="robots" content="noindex,nofollow">
+<title>가족 아이디어 보드 | 채피움 CHAEPIUM</title>
+<link rel="stylesheet" href="./assets/brand/brand.css?v=platform-2">
+<link rel="stylesheet" href="./assets/family-ideas.css?v=ideas-1">
+</head><body>
+<header class="ideas-header"><a href="./index.html#design" class="ideas-brand"><img src="./assets/brand/logo-main.png" alt="채피움" width="240"></a><div><a href="./index.html#design">자재·아이디어로</a><a href="./index.html#home">홈으로</a></div></header>
+<main class="ideas-shell">
+<div class="ideas-intro"><span class="eyebrow">CHAEPIUM · FAMILY IDEAS</span><h1>우리 가족의 집짓기 아이디어</h1><p>마음에 드는 사진, 제품 링크, 참고할 디자인을 함께 모아봐요.<br>삼남매가 각자 올린 아이디어는 세 계정에서 함께 볼 수 있어요.</p></div>
+<section class="ideas-auth" id="loginPanel"><h2>가족 구글 계정으로 연결</h2><p>등록된 가족 계정만 아이디어를 확인하고 올릴 수 있어요.</p><button id="signIn" type="button">구글 로그인</button></section>
+<div id="status" class="ideas-status" role="status">연결 상태 확인 중…</div>
+<section id="ideasApp" hidden>
+<div class="ideas-toolbar"><strong id="memberName"></strong><div><button type="button" id="signOut" class="ghost">로그아웃</button><button type="button" id="composeToggle">＋ 아이디어 추가</button></div></div>
+<section class="ideas-compose" id="composePanel" hidden><h2>참고 아이디어 등록</h2><form id="ideasForm">
+<input type="hidden" name="editId" value="">
+<div class="ideas-form-grid"><label>공간/주제<select name="category"><option>외관</option><option>거실</option><option>주방</option><option>침실</option><option>욕실</option><option>마당</option><option>창고·지붕</option><option>설비</option><option>기타</option></select></label><label>제목 *<input name="title" maxlength="120" required placeholder="예: 마당 디딤석 이런 느낌 어떨까?"></label></div>
+<label>내 의견·설명<textarea name="note" maxlength="1200" rows="3" placeholder="왜 마음에 들었는지, 어느 곳에 적용하고 싶은지 적어주세요."></textarea></label>
+<label>참고 링크 (한 줄에 하나, 최대 5개)<textarea name="links" rows="3" placeholder="https://..."></textarea></label>
+<label>참고 사진 (최대 5장)<input id="ideaFile" type="file" accept="image/*" multiple></label>
+<div class="idea-paste" id="ideaPaste" tabindex="0"><strong>사진 복사·붙여넣기</strong><p>PC는 여기를 누르고 Ctrl+V, 휴대폰은 아래 입력칸을 길게 눌러 붙여넣기</p><textarea id="ideaPasteMobile" rows="1" placeholder="이곳에 사진 붙여넣기"></textarea><span id="pastedCount">붙여넣은 사진 없음</span><div class="idea-paste-thumbs" id="pasteThumbs"></div></div>
+<div class="ideas-form-actions"><button type="button" id="resetCompose" class="ghost">취소</button><button type="submit" id="saveIdea">가족 보드에 올리기</button></div>
+</form></section>
+<div class="ideas-filter"><label>아이디어 보기 <select id="categoryFilter"><option value="">모든 공간</option><option>외관</option><option>거실</option><option>주방</option><option>침실</option><option>욕실</option><option>마당</option><option>창고·지붕</option><option>설비</option><option>기타</option></select></label><span id="ideaTotal"></span></div>
+<div id="ideasList" class="ideas-grid" aria-live="polite"></div>
+</section>
+<p class="ideas-foot">이 보드에는 예산·계약서·정확한 주소를 자동으로 공유하지 않습니다. 사진은 크기를 줄여 보관되므로 원본은 별도로 보관해 주세요.</p>
+</main>
+<div id="ideaLightbox" class="idea-lightbox" hidden role="dialog" aria-modal="true" aria-label="참고 사진 보기"><button id="lightboxClose" type="button" aria-label="닫기">×</button><button id="lightboxPrev" type="button" aria-label="이전 사진">‹</button><img id="lightboxImage" alt="참고 사진"><button id="lightboxNext" type="button" aria-label="다음 사진">›</button><div id="lightboxCounter"></div></div>
+<script type="module" src="./assets/family-ideas.js?v=ideas-1"></script>
+</body></html>
