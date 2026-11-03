@@ -302,6 +302,39 @@ function galleryItemsForClick(button,key){
  if(!photos.some(p=>p.id===key))photos.unshift({id:key,name:'현장 사진'});
  return photos;
 }
+
+function galleryApplyZoom(){
+ const g=gallerySession,image=$('#galleryImage');if(!g||!image)return;
+ const z=g.zoom;
+ z.scale=Math.max(1,Math.min(5,z.scale));
+ if(z.scale===1){z.x=0;z.y=0;}
+ else{
+  const maxX=Math.max(0,image.clientWidth*(z.scale-1)/2);
+  const maxY=Math.max(0,image.clientHeight*(z.scale-1)/2);
+  z.x=Math.max(-maxX,Math.min(maxX,z.x));
+  z.y=Math.max(-maxY,Math.min(maxY,z.y));
+ }
+ image.style.transform=`translate3d(${z.x}px,${z.y}px,0) scale(${z.scale})`;
+ image.classList.toggle('zoomed',z.scale>1);
+ const stage=image.closest('.gallery-stage');stage?.classList.toggle('is-zoomed',z.scale>1);
+ const pct=$('#galleryZoomValue');if(pct)pct.textContent=Math.round(z.scale*100)+'%';
+ const minus=$('#galleryZoomOut');if(minus)minus.disabled=z.scale<=1;
+ const plus=$('#galleryZoomIn');if(plus)plus.disabled=z.scale>=5;
+ const reset=$('#galleryZoomReset');if(reset)reset.disabled=z.scale===1;
+}
+function gallerySetZoom(scale,x=0,y=0){
+ const g=gallerySession;if(!g)return;g.zoom={scale,x,y};galleryApplyZoom();
+}
+function galleryZoomStep(direction){
+ if(!gallerySession)return;
+ const z=gallerySession.zoom;
+ gallerySetZoom(z.scale+(direction>0?.5:-.5),z.x,z.y);
+}
+function galleryToggleZoom(){
+ if(!gallerySession||Date.now()<(gallerySession.ignoreTapUntil||0))return;
+ gallerySetZoom(gallerySession.zoom.scale>1?1:2.5);
+}
+
 async function showGalleryPhoto(nextIndex){
  const g=gallerySession;
  if(!g||!g.items.length)return;
@@ -310,6 +343,7 @@ async function showGalleryPhoto(nextIndex){
  const photo=g.items[g.index];
  const image=$('#galleryImage'),counter=$('#galleryCounter'),caption=$('#galleryCaption'),strip=$('#galleryStrip');
  if(!image)return;
+ gallerySetZoom(1);
  image.removeAttribute('src');
  image.alt=photo.name||photo.caption||'현장 사진';
  counter.textContent=`${g.index+1} / ${g.items.length}`;
@@ -332,9 +366,9 @@ async function showGalleryPhoto(nextIndex){
 async function showGallery(key,button){
  const items=galleryItemsForClick(button,key);
  const index=items.findIndex(p=>p.id===key);
- gallerySession={items,index:index<0?0:index,sequence:0};
+ gallerySession={items,index:index<0?0:index,sequence:0,zoom:{scale:1,x:0,y:0},ignoreTapUntil:0};
  lastFocus=button||document.activeElement;
- $('#modalRoot').innerHTML=`<div class="modal gallery-modal" role="dialog" aria-modal="true" aria-labelledby="galleryTitle"><div class="gallery-top"><div class="gallery-heading"><span>CHAEPIUM PHOTO ARCHIVE</span><h2 id="galleryTitle">사진 슬라이드 보기</h2></div><span class="gallery-counter" id="galleryCounter" aria-live="polite"></span><button type="button" class="gallery-close" data-action="close-modal" aria-label="사진 슬라이드 닫기">×</button></div><div class="gallery-stage"><button type="button" class="gallery-arrow prev" id="galleryPrev" data-action="gallery-prev" aria-label="이전 사진">‹</button><img id="galleryImage" alt="현장 사진" draggable="false"><button type="button" class="gallery-arrow next" id="galleryNext" data-action="gallery-next" aria-label="다음 사진">›</button></div><div class="gallery-bottom"><p class="gallery-caption" id="galleryCaption"></p><div class="gallery-strip" id="galleryStrip" aria-label="사진 목록"></div><div class="gallery-actions"><span>화살표 · 스와이프로 넘기기</span><button type="button" class="btn" data-action="download-file" id="galleryDownload">현재 사진 저장</button></div></div></div>`;
+ $('#modalRoot').innerHTML=`<div class="modal gallery-modal" role="dialog" aria-modal="true" aria-labelledby="galleryTitle"><div class="gallery-top"><div class="gallery-heading"><span>CHAEPIUM PHOTO ARCHIVE</span><h2 id="galleryTitle">사진 슬라이드 보기</h2></div><span class="gallery-counter" id="galleryCounter" aria-live="polite"></span><div class="gallery-zoom-tools" aria-label="사진 확대 제어"><button type="button" id="galleryZoomOut" data-action="gallery-zoom-out" aria-label="사진 축소">−</button><span id="galleryZoomValue" aria-live="polite">100%</span><button type="button" id="galleryZoomIn" data-action="gallery-zoom-in" aria-label="사진 확대">+</button><button type="button" id="galleryZoomReset" data-action="gallery-zoom-reset" aria-label="사진 크기 원래대로">맞춤</button></div><button type="button" class="gallery-close" data-action="close-modal" aria-label="사진 슬라이드 닫기">×</button></div><div class="gallery-stage"><button type="button" class="gallery-arrow prev" id="galleryPrev" data-action="gallery-prev" aria-label="이전 사진">‹</button><img id="galleryImage" data-action="gallery-toggle-zoom" alt="현장 사진 · 누르면 확대" title="사진을 클릭하면 확대·축소" draggable="false"><button type="button" class="gallery-arrow next" id="galleryNext" data-action="gallery-next" aria-label="다음 사진">›</button></div><div class="gallery-bottom"><p class="gallery-caption" id="galleryCaption"></p><div class="gallery-strip" id="galleryStrip" aria-label="사진 목록"></div><div class="gallery-actions"><span>사진 누르면 확대 · 두 손가락 확대 · 스와이프로 넘기기</span><button type="button" class="btn" data-action="download-file" id="galleryDownload">현재 사진 저장</button></div></div></div>`;
  $('#modalRoot').classList.remove('hidden');
  $('#modalRoot').classList.add('gallery-open');
  document.body.style.overflow='hidden';
@@ -360,7 +394,7 @@ const PUBLIC_PAGES=new Set(['landing','projects','settings','more','brand']);
 function render(){if(!Object.hasOwn(PAGES,ui.page))ui.page=catalog.activeId?'home':'projects';if(!catalog.activeId&&!PUBLIC_PAGES.has(ui.page))ui.page='projects';document.body.className=ui.page==='landing'?'landing-screen':`workspace-screen page-${ui.page}`;$('#railMark').innerHTML=`<img src="./assets/brand/logo-main.png" alt="채피움 CHAEPIUM" width="1400" height="680">`;$('#mobileMark').innerHTML=`<img src="./assets/brand/logo-main.png" alt="채피움 CHAEPIUM" width="1400" height="680">`;$('#railNav').innerHTML=NAV.map(([p,t,ic])=>`<button class="nav-btn ${ui.page===p?'active':''} ${p==='baseline'?'baseline-featured':''}" data-nav="${p}">${icon(ic)}<span>${t}</span></button>`).join('')+`<button class="nav-btn ${ui.page==='more'?'active':''}" data-nav="more">${icon('more')}<span>더보기</span></button><button class="nav-btn" data-nav="landing">${icon('home')}<span>서비스 소개</span></button>`;const mini=[['home','홈','home'],['baseline','전후 비교','camera'],['journal','사진','book'],['budget','비용','wallet'],['more','더보기','more']];$('#bottomNav').innerHTML=mini.map(([p,t,ic])=>`<button class="${ui.page===p||(p==='more'&&!mini.some(x=>x[0]===ui.page))?'active':''}" data-nav="${p}">${icon(ic,21)}<span>${t}</span></button>`).join('');$('#topTitle').textContent=TITLES[ui.page]||'채피움';const switcher=$('#projectSwitcher');switcher.innerHTML=visibleProjectSummaries().map(p=>`<option value="${esc(p.id)}" ${p.id===catalog.activeId?'selected':''}>${esc(p.state.project.title||'이름 없는 프로젝트')}</option>`).join('')||'<option>가족 프로젝트 연결 전</option>';switcher.disabled=!catalog.ids.length;$('#mainContent').innerHTML=(catalog.activeId==='family-moms-garden'&&!window.chaeFamilyBridge?.canView()&&!['landing','brand','projects'].includes(ui.page))?'<section class="card pane"><h2>엄마의 뜰 · 가족 로그인</h2><p>삼남매가 함께 쓰는 프로젝트입니다. 위의 가족 구글 로그인 버튼으로 로그인해 주세요.</p></section>':PAGES[ui.page]();$('#quickAdd').hidden=ui.page==='landing'||!catalog.activeId;const headerAdd=document.querySelector('.workspace-add');if(headerAdd)headerAdd.hidden=!catalog.activeId;document.title=ui.page==='landing'?'채피움 CHAEPIUM | 집을 짓는 모든 순간을':(TITLES[ui.page]||'채피움')+' | 채피움';loadImgs();window.chaeFamilyBridge?.update?.();}
 function navigate(page){if(!Object.hasOwn(PAGES,page))return;if(!catalog.activeId&&!PUBLIC_PAGES.has(page))page='projects';const previous=ui.page;ui.page=page;if(location.hash!=='#'+page)history.pushState({chaepium:true,from:previous},'',location.pathname+location.search+'#'+page);render();window.scrollTo({top:0,behavior:'instant'});}
 function quickAdd(){if(!catalog.activeId)return openModal('new-project');lastFocus=document.activeElement;$('#modalRoot').innerHTML=`<div class="modal quick-add-modal" role="dialog" aria-modal="true" aria-labelledby="quick-add-title"><div class="modal-header"><h2 id="quick-add-title">오늘 무엇을 기록할까요?</h2><button class="icon-btn" data-action="close-modal" aria-label="닫기">${icon('close',22)}</button></div><div class="modal-body quick-add-options">${[['journal','사진일기','camera'],['task','일정·할 일','calendar'],['expense','비용','wallet'],['document','서류','folder'],['design','자재·아이디어','palette'],['contact','연락처','phone']].map(([kind,label,ic])=>`<button data-open="${kind}">${icon(ic,24)}<span>${label}</span></button>`).join('')}</div></div>`;$('#modalRoot').classList.remove('hidden');document.body.style.overflow='hidden';$('#modalRoot').querySelector('button').focus();}
-async function handleClick(event){const close=event.target.closest('[data-action="close-modal"]');if(close){closeModal();return;}if(busy)return;const nav=event.target.closest('[data-nav]');if(nav){event.preventDefault();navigate(nav.dataset.nav);return;}const op=event.target.closest('[data-open]');if(op){const draft=op.dataset.baseline?baselineDraft(op.dataset.baseline,op.dataset.phase||'before',op.dataset.beforePhoto||''):null;openModal(op.dataset.open,op.dataset.id,draft);return;}const button=event.target.closest('[data-action]');if(!button)return;const {action,id:key}=button.dataset;if(action==='clear-pasted'){const input=button.closest('.field')?.querySelector('input[type=file]');if(input){clipboardUploads.delete(input);attachmentPasteZone(input);}return;}if(action==='gallery-prev'){await showGalleryPhoto((gallerySession?.index||0)-1);return;}if(action==='gallery-next'){await showGalleryPhoto((gallerySession?.index||0)+1);return;}if(action==='gallery-go'){await showGalleryPhoto(Number(button.dataset.index));return;}if(action==='family-signin'){window.chaeFamilyBridge?.login?.();return;}if(action==='family-create'){window.chaeFamilyBridge?.create?.();return;}if(action==='family-refresh'){window.chaeFamilyBridge?.refresh?.();return;}if(action==='scroll-compare'){$('#compareArea')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(action==='quick-add')return quickAdd();if(action==='start-project'){if(catalog.ids.length)navigate('projects');else openModal('new-project');return;}if(action==='back'){if(history.state?.from)history.back();else navigate(catalog.activeId?'home':'projects');return;}if(action==='restore'){$('#restoreInput').click();return;}if(action==='focus-stage'){ui.stage=key;ui.taskStatus='all';render();$('#task-list')?.scrollIntoView({block:'start'});return;}if(action==='doc-category'){ui.docCategory=button.dataset.value;render();return;}
+async function handleClick(event){const close=event.target.closest('[data-action="close-modal"]');if(close){closeModal();return;}if(busy)return;const nav=event.target.closest('[data-nav]');if(nav){event.preventDefault();navigate(nav.dataset.nav);return;}const op=event.target.closest('[data-open]');if(op){const draft=op.dataset.baseline?baselineDraft(op.dataset.baseline,op.dataset.phase||'before',op.dataset.beforePhoto||''):null;openModal(op.dataset.open,op.dataset.id,draft);return;}const button=event.target.closest('[data-action]');if(!button)return;const {action,id:key}=button.dataset;if(action==='clear-pasted'){const input=button.closest('.field')?.querySelector('input[type=file]');if(input){clipboardUploads.delete(input);attachmentPasteZone(input);}return;}if(action==='gallery-toggle-zoom'){galleryToggleZoom();return;}if(action==='gallery-zoom-in'){galleryZoomStep(1);return;}if(action==='gallery-zoom-out'){galleryZoomStep(-1);return;}if(action==='gallery-zoom-reset'){gallerySetZoom(1);return;}if(action==='gallery-prev'){await showGalleryPhoto((gallerySession?.index||0)-1);return;}if(action==='gallery-next'){await showGalleryPhoto((gallerySession?.index||0)+1);return;}if(action==='gallery-go'){await showGalleryPhoto(Number(button.dataset.index));return;}if(action==='family-signin'){window.chaeFamilyBridge?.login?.();return;}if(action==='family-create'){window.chaeFamilyBridge?.create?.();return;}if(action==='family-refresh'){window.chaeFamilyBridge?.refresh?.();return;}if(action==='scroll-compare'){$('#compareArea')?.scrollIntoView({behavior:'smooth',block:'start'});return;}if(action==='quick-add')return quickAdd();if(action==='start-project'){if(catalog.ids.length)navigate('projects');else openModal('new-project');return;}if(action==='back'){if(history.state?.from)history.back();else navigate(catalog.activeId?'home':'projects');return;}if(action==='restore'){$('#restoreInput').click();return;}if(action==='focus-stage'){ui.stage=key;ui.taskStatus='all';render();$('#task-list')?.scrollIntoView({block:'start'});return;}if(action==='doc-category'){ui.docCategory=button.dataset.value;render();return;}
 busy=true;try{if(action==='switch-project')await switchProject(key);else if(action==='delete-project')await deleteProject(key);else if(action==='delete')await deleteRecord(button.dataset.kind,key);else if(action==='toggle-task'||action==='toggle-care'){const draft=clone(state),rows=action==='toggle-task'?draft.tasks:draft.care,row=rows.find(t=>t.id===key);if(row){if(action==='toggle-task')row.status=row.status==='done'?'todo':'done';else row.done=!row.done;await persist(draft);render();}}else if(action==='download-file')await downloadFile(key);else if(action==='preview-file')await previewFile(key,button);else if(action==='backup')await backup();else if(action==='recovery')await recoverBackup();else if(action==='cleanup'){if(confirm('어떤 프로젝트에서도 사용하지 않는 첨부파일만 정리할까요?')){await removeUnused((await read('attachments')).map(f=>f.id));await refreshStorage();render();toast('사용하지 않는 첨부파일을 정리했습니다.');}}}catch(e){console.error('Action failed',e);toast(e.message||'처리하지 못했습니다.');}finally{busy=false;}}
 // Additive v1 migration: retain original state and attachment IDs; never reset an existing store.
 async function init(){try{db=await openDB();const savedCatalog=await read('meta','workspace'),legacy=await read('meta','state');if(savedCatalog){if(savedCatalog.schema!==2||!Array.isArray(savedCatalog.ids))throw Error('프로젝트 목록을 읽을 수 없습니다. 데이터를 삭제하지 말고 백업을 확인해 주세요.');catalog=savedCatalog;state=catalog.activeId?await read('meta','project:'+catalog.activeId):freshState();if(catalog.activeId)validState(state);}else if(legacy){validState(legacy);const legacyId=id();catalog={schema:2,activeId:legacyId,ids:[legacyId],revision:1};await workspaceWrite(0,tx=>{const m=tx.objectStore('meta');m.put(legacy,'legacy-original-v1');m.put(legacy,'project:'+legacyId);m.put(catalog,'workspace')});state=legacy;}else{catalog={schema:2,activeId:null,ids:[],revision:0};state=freshState();await workspaceWrite(0,tx=>tx.objectStore('meta').put(catalog,'workspace'));}if(savedCatalog&&legacy&&JSON.stringify(legacy)!==JSON.stringify(catalog.activeId?state:null)){validState(legacy);const recoveredId=id(),nextCatalog={...catalog,activeId:recoveredId,ids:[...catalog.ids,recoveredId],recoveredIds:[...(catalog.recoveredIds||[]),recoveredId],revision:(catalog.revision||0)+1};await workspaceWrite(catalog.revision||0,tx=>{const m=tx.objectStore('meta');m.put(legacy,'project:'+recoveredId);m.put(nextCatalog,'workspace');m.put(legacy,'state');},['meta'],true);catalog=nextCatalog;state=legacy;toast('이전 버전 탭의 기록을 별도 프로젝트로 보존했습니다. 이전 탭을 닫아 주세요.');}else if(savedCatalog&&catalog.activeId&&!legacy){const nextCatalog={...catalog,revision:(catalog.revision||0)+1};await workspaceWrite(catalog.revision||0,tx=>{tx.objectStore('meta').put(state,'state');tx.objectStore('meta').put(nextCatalog,'workspace');},['meta'],true);catalog=nextCatalog;}await refreshProjectSummaries();for(const p of projectSummaries)validState(p.state);await refreshStorage();const requested=location.hash.slice(1);ui.page=Object.hasOwn(PAGES,requested)?requested:(catalog.activeId?'home':'projects');history.replaceState({chaepium:true},'',location.href);render();window.dispatchEvent(new Event('chaepium-ready'));}catch(e){console.error('Initialization failed',e);$('#mainContent').innerHTML=`<div class="banner warning"><h1>기록 저장소를 열지 못했습니다</h1><p>${esc(e.message)}</p><p>브라우저 데이터를 삭제하지 마세요. 일반 브라우저 모드의 저장 공간과 기존 백업 파일을 확인해 주세요.</p></div>`;}}
@@ -409,17 +443,79 @@ $('#restoreInput').addEventListener('change',e=>restore(e.target.files?.[0]));
 $('#modalRoot').addEventListener('click',event=>{if(event.target===$('#modalRoot'))closeModal();});
 document.addEventListener('keydown',event=>{if($('#modalRoot').classList.contains('hidden'))return;if(gallerySession&&['ArrowLeft','ArrowRight'].includes(event.key)){event.preventDefault();showGalleryPhoto(gallerySession.index+(event.key==='ArrowRight'?1:-1));return;}if(event.key==='Escape'){event.preventDefault();closeModal();}if(event.key==='Tab'){const nodes=[...$('#modalRoot').querySelectorAll('button,input,select,textarea,a[href]')].filter(n=>!n.disabled&&n.getClientRects().length);const first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});
 
-let galleryTouchStart=null;
+let galleryTouchStart=null,galleryPinch=null,galleryMousePan=null;
+$('#modalRoot').addEventListener('wheel',event=>{
+ if(!gallerySession||!event.target.closest('.gallery-stage'))return;
+ event.preventDefault();
+ galleryZoomStep(event.deltaY<0?1:-1);
+},{passive:false});
+$('#modalRoot').addEventListener('pointerdown',event=>{
+ if(!gallerySession||gallerySession.zoom.scale<=1||event.pointerType!=='mouse'||event.target.id!=='galleryImage')return;
+ galleryMousePan={id:event.pointerId,x:event.clientX,y:event.clientY,left:gallerySession.zoom.x,top:gallerySession.zoom.y,moved:false};
+ event.target.setPointerCapture?.(event.pointerId);
+});
+$('#modalRoot').addEventListener('pointermove',event=>{
+ const pan=galleryMousePan,g=gallerySession;
+ if(!pan||!g||event.pointerId!==pan.id||event.pointerType!=='mouse')return;
+ if(Math.abs(event.clientX-pan.x)>4||Math.abs(event.clientY-pan.y)>4)pan.moved=true;
+ g.zoom.x=pan.left+(event.clientX-pan.x);
+ g.zoom.y=pan.top+(event.clientY-pan.y);
+ galleryApplyZoom();
+});
+function galleryEndMousePan(){
+ if(galleryMousePan?.moved&&gallerySession)gallerySession.ignoreTapUntil=Date.now()+400;
+ galleryMousePan=null;
+}
+$('#modalRoot').addEventListener('pointerup',galleryEndMousePan);
+$('#modalRoot').addEventListener('pointercancel',galleryEndMousePan);
 $('#modalRoot').addEventListener('touchstart',event=>{
- if(!gallerySession||!event.target.closest('.gallery-stage')||event.touches.length!==1){galleryTouchStart=null;return;}
- galleryTouchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};
+ if(!gallerySession||!event.target.closest('.gallery-stage')){galleryTouchStart=null;galleryPinch=null;return;}
+ if(event.touches.length===2){
+  const [a,b]=event.touches;
+  galleryPinch={distance:Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY),startScale:gallerySession.zoom.scale};
+  galleryTouchStart=null;
+  return;
+ }
+ if(event.touches.length!==1){galleryTouchStart=null;return;}
+ galleryTouchStart={x:event.touches[0].clientX,y:event.touches[0].clientY,lastX:event.touches[0].clientX,lastY:event.touches[0].clientY,dragged:false};
 },{passive:true});
+$('#modalRoot').addEventListener('touchmove',event=>{
+ const g=gallerySession;
+ if(!g||!event.target.closest('.gallery-stage'))return;
+ if(event.touches.length===2&&galleryPinch){
+  const [a,b]=event.touches,now=Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);
+  if(galleryPinch.distance>0){g.zoom.scale=galleryPinch.startScale*now/galleryPinch.distance;galleryApplyZoom();}
+  g.ignoreTapUntil=Date.now()+450;
+  event.preventDefault();
+  return;
+ }
+ if(event.touches.length===1&&g.zoom.scale>1&&galleryTouchStart){
+  const touch=event.touches[0];
+  const dx=touch.clientX-galleryTouchStart.lastX,dy=touch.clientY-galleryTouchStart.lastY;
+  if(Math.abs(dx)>1||Math.abs(dy)>1)galleryTouchStart.dragged=true;
+  g.zoom.x+=dx;g.zoom.y+=dy;galleryApplyZoom();
+  galleryTouchStart.lastX=touch.clientX;galleryTouchStart.lastY=touch.clientY;
+  g.ignoreTapUntil=Date.now()+350;
+  event.preventDefault();
+ }
+},{passive:false});
 $('#modalRoot').addEventListener('touchend',event=>{
- if(!galleryTouchStart||!gallerySession||event.changedTouches.length!==1)return;
- const dx=event.changedTouches[0].clientX-galleryTouchStart.x,dy=event.changedTouches[0].clientY-galleryTouchStart.y;
+ if(!gallerySession)return;
+ if(galleryPinch){
+  if(event.touches.length<2){galleryPinch=null;galleryTouchStart=null;gallerySession.ignoreTapUntil=Date.now()+450;}
+  return;
+ }
+ const t=galleryTouchStart;
+ if(!t||event.changedTouches.length!==1)return;
  galleryTouchStart=null;
- if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.25)showGalleryPhoto(gallerySession.index+(dx<0?1:-1));
+ if(gallerySession.zoom.scale>1){if(t.dragged)gallerySession.ignoreTapUntil=Date.now()+350;return;}
+ const dx=event.changedTouches[0].clientX-t.x,dy=event.changedTouches[0].clientY-t.y;
+ if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.25){
+  gallerySession.ignoreTapUntil=Date.now()+400;
+  showGalleryPhoto(gallerySession.index+(dx<0?1:-1));
+ }
 },{passive:true});
+$('#modalRoot').addEventListener('touchcancel',()=>{galleryTouchStart=null;galleryPinch=null;},{passive:true});
 
 function readRoute(){if(!db)return;const requested=location.hash.slice(1);ui.page=Object.hasOwn(PAGES,requested)?requested:(catalog.activeId?'home':'projects');closeModal();render();}
 window.addEventListener('popstate',readRoute);window.addEventListener('hashchange',readRoute);window.addEventListener('beforeunload',event=>{if(busy){event.preventDefault();event.returnValue='';}});
